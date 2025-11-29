@@ -9,7 +9,7 @@ let moveForward = false,
   moveRight = false;
 let velocity = new THREE.Vector3();
 let direction = new THREE.Vector3();
-const moveSpeed = 80.0;
+const moveSpeed = 160.0;
 let prevTime = performance.now();
 let frameCount = 0;
 let logInterval = 0;
@@ -28,8 +28,11 @@ let isInfoPanelOpen = false; // Track if info panel is open
 
 // Collision detection variables
 let collidableObjects = []; // Array untuk menyimpan objek yang bisa ditabrak
-const playerHeight = 2.0; // Tinggi pemain (meter) (for future use)
+let groundObjects = [];
+let nonGroundObjects = [];
+const playerHeight = 13.0; // Tinggi pemain (meter) (for future use)
 const playerRadius = 1.5; // Radius collider pemain (meter)
+const GROUND_OFFSET = playerHeight; // Jarak dari posisi kamera ke tanah
 const collisionRaycaster = new THREE.Raycaster(
   new THREE.Vector3(),
   new THREE.Vector3(),
@@ -207,12 +210,35 @@ function init() {
       // Setup collision objects - collect all meshes from the model
       model.traverse((child) => {
         if (child.isMesh) {
+          const name = child.name.toLowerCase();
+          
+          // Check the mesh's PARENT name (because paving/lantai are parent groups)
+          const parentName = child.parent?.name?.toLowerCase() || '';
+          
+          // Identify ground objects by checking both mesh name AND parent name
+          if (name.includes('paving') || 
+              name.includes('lantai') || 
+              name.includes('ramp') || 
+              parentName.includes('paving') ||
+              parentName.includes('lantai') ||
+              parentName.includes('ramp')) {
+            groundObjects.push(child);
+            console.log("Ground object found:", child.name, "| Parent:", child.parent?.name);
+          } else {
+            // Everything else is a non-ground object
+            nonGroundObjects.push(child);
+          }
+          
+          // All objects can still be collided with horizontally
           collidableObjects.push(child);
         }
       });
-      console.log(
-        `Collision system ready with ${collidableObjects.length} collidable objects`
-      );
+
+      console.log(`Collision system ready:`);
+      console.log(`- Ground objects: ${groundObjects.length}`);
+      console.log(`- Wall objects: ${nonGroundObjects.length}`);
+      console.log(`- Total collidable: ${collidableObjects.length}`);
+
     },
     function (xhr) {
       const percent = ((xhr.loaded / xhr.total) * 100).toFixed(2);
@@ -234,10 +260,16 @@ function onWindowResize() {
 }
 
 // Check if object name indicates it's a plane
-function isPlaneObject(name) {
-  if (!name) return false;
-  const lowerName = name.toLowerCase();
-  return lowerName.includes("plane") || lowerName.startsWith("plane");
+function isBatikObject(name, parentName) {
+  if (!name && !parentName) return false;
+  
+  const lowerName = name ? name.toLowerCase() : '';
+  const lowerParentName = parentName ? parentName.toLowerCase() : '';
+  
+  // Check if the object name or parent name contains 'batik'
+  return lowerName.includes("batik") || 
+         lowerParentName.includes("batik") ||
+         lowerParentName.startsWith("batik_");
 }
 
 // Update info panel visibility
@@ -282,10 +314,11 @@ function updateRaycaster() {
 
     // Get object name
     const displayName = objectHit.name || "Unnamed Object";
+    const parentName = objectHit.parent?.name || "";
 
     // Check if this is a plane and within interaction distance
-    const isPlane = isPlaneObject(displayName);
-    const canInteract = isPlane && distance <= INTERACTION_DISTANCE;
+    const isBatik = isBatikObject(displayName, parentName);
+    const canInteract = isBatik && distance <= INTERACTION_DISTANCE;
 
     if (canInteract) {
       // Show interaction prompt
@@ -359,7 +392,7 @@ function updateRaycaster() {
       infoContent.innerHTML = infoHTML;
       updateInfoPanelVisibility();
     } else {
-      // Not a plane or too far away
+      // Not a batik or too far away
       currentInteractableObject = null;
       isInfoPanelOpen = false;
       interactionPrompt.classList.remove("visible");
@@ -373,7 +406,7 @@ function updateRaycaster() {
         type: objectType,
         geometry: geometryType,
         distance: distance.toFixed(2),
-        isPlane: isPlane,
+        isBatik: isBatik,
         canInteract: canInteract,
         position: {
           x: point.x.toFixed(2),
@@ -430,6 +463,69 @@ function checkCollision(moveVector) {
   return isBlocked;
 }
 
+function adjustHeightToGround() {
+  if (collidableObjects.length === 0) return false;
+
+  const downRaycaster = new THREE.Raycaster(
+    camera.position,
+    new THREE.Vector3(0, -1, 0),
+    0,
+    100
+  );
+
+  // Check ALL objects first to see what's directly below
+  const allIntersections = downRaycaster.intersectObjects(collidableObjects, false);
+  
+  if (allIntersections.length === 0) {
+    // Nothing below at all
+    if (frameCount % 30 === 0) {
+      console.log("WARNING: Nothing below player!");
+    }
+    return false;
+  }
+
+  // Get the CLOSEST object below (what player is standing on)
+  const closestObject = allIntersections[0];
+  const closestDistance = closestObject.distance;
+
+  // Now check if that closest object is actually ground
+  const groundIntersections = downRaycaster.intersectObjects(groundObjects, false);
+  
+  if (groundIntersections.length === 0) {
+    // No ground objects below at all
+    if (frameCount % 30 === 0) {
+      console.log("WARNING: No ground below! Standing on:", closestObject.object.name);
+    }
+    return false;
+  }
+
+  const closestGround = groundIntersections[0];
+  const groundDistance = closestGround.distance;
+
+  // Check if the closest object IS the ground
+  // Allow small tolerance (0.1m) for floating point errors
+  if (Math.abs(closestDistance - groundDistance) < 0.1) {
+    // Player is on valid ground
+    const groundY = closestGround.point.y;
+    const desiredHeight = groundY + GROUND_OFFSET;
+    camera.position.y = desiredHeight;
+
+    if (frameCount % 120 === 0) {
+      console.log(`On valid ground: ${closestGround.object.name}`);
+    }
+    return true;
+  } else {
+    // There's something between player and ground (standing on obstacle)
+    if (frameCount % 30 === 0) {
+      console.log(
+        `WARNING: Standing on obstacle "${closestObject.object.name}" ` +
+        `(${closestDistance.toFixed(2)}m below), ground is ${groundDistance.toFixed(2)}m below`
+      );
+    }
+    return false;
+  }
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
@@ -481,6 +577,14 @@ function animate() {
     if (checkCollision(moveVector)) {
       // Rollback movement if collision detected
       camera.position.copy(oldPosition);
+    } else {
+      const hasValidGround = adjustHeightToGround();
+      
+      // If no valid ground detected, also rollback (prevents walking on objects)
+      if (!hasValidGround) {
+        camera.position.copy(oldPosition);
+        console.log("Rollback: No valid ground below!");
+      }
     }
 
     // Debug camera position every 60 frames (~1 second)
