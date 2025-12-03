@@ -299,7 +299,19 @@ function init() {
 
   // 2. Setup Scene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xcccccc);
+  // scene.background = new THREE.Color(0xcccccc);
+
+  // 2.1 Setup Skybox
+  const skyboxLoader = new THREE.CubeTextureLoader();
+  const skyboxTexture = skyboxLoader.load([
+    './assets/skybox/texture_desa.jpg', // right
+    './assets/skybox/texture_desa.jpg', // left
+    './assets/skybox/texture_langit.jpg', // top
+    './assets/skybox/texture_langit.jpg', // bottom
+    './assets/skybox/texture_desa.jpg', // front
+    './assets/skybox/texture_desa.jpg', // back
+  ]);
+  scene.background = skyboxTexture;
 
   // 3. Setup Kamera (Standing Position)
   camera = new THREE.PerspectiveCamera(
@@ -497,6 +509,21 @@ function init() {
         }
       });
 
+      model.traverse((child) => {
+        if (child.name === 'Object_14' || child.name === 'paving') {
+          const textureLoader = new THREE.TextureLoader();
+          const grassMap = textureLoader.load('./assets/texture_grass.jpg')
+          grassMap.wrapS = THREE.RepeatWrapping;
+          grassMap.wrapT = THREE.RepeatWrapping;
+          grassMap.repeat.set(10, 10);
+          child.material.map = grassMap;
+          child.material.color.setHex(0xffffff);
+          child.material.metalness = 0.0;
+          child.material.roughness = 1.0;
+          child.material.needsUpdate = true;
+          console.log("Tekstur rumput berhasil dipasang via kode!");
+        }
+      });
     },
     function (xhr) {
       const percent = ((xhr.loaded / xhr.total) * 100).toFixed(2);
