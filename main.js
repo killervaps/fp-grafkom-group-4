@@ -4,6 +4,9 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 let camera, scene, renderer, controls;
+let previewCamera; // Kamera khusus untuk intro screen
+let isGameActive = false; // Status apakah user sudah klik play
+let previewTime = 0; // Timer untuk animasi kamera
 let moveForward = false,
   moveBackward = false,
   moveLeft = false,
@@ -976,6 +979,16 @@ function init() {
   console.log("Initial Camera Position:", camera.position);
   console.log("Camera rotation (looking down):", camera.rotation);
 
+  // 3.5 SETUP KAMERA PREVIEW (BARU)
+  previewCamera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    2000
+  );
+  // Posisi awal preview camera (akan di-override di animate)
+  previewCamera.position.set(0, 50, 100);
+
   // 4. Setup PointerLockControls
   controls = new PointerLockControls(camera, renderer.domElement);
 
@@ -988,6 +1001,7 @@ function init() {
   startBtn.addEventListener("click", function () {
     controls.lock();
     welcomeScreen.style.display = "none";
+    isGameActive = true;
   });
 
   // Pause screen click handler
@@ -1255,6 +1269,8 @@ function init() {
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  previewCamera.aspect = window.innerWidth / window.innerHeight;
+  previewCamera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
@@ -1330,6 +1346,57 @@ function updateRaycaster() {
       // Show interaction prompt only if info panel is not already open
       currentInteractableObject = objectHit;
       isLookingAtCantingObject = isCantingObj;
+
+      // Update prompt text based on object type
+      if (isCantingObj) {
+        interactionPrompt.innerHTML =
+          'Press <span class="key">E</span> to view info | <span class="key">Q</span> to use Canting';
+      } else {
+        interactionPrompt.innerHTML =
+          'Press <span class="key">E</span> to view info';
+      }
+
+      interactionPrompt.classList.add("visible");
+
+      // Build info HTML (will be shown when E is pressed)
+      let infoHTML = `
+                <div class="info-row">
+                    <div class="info-label">Object:</div>
+                    <div class="info-value highlight">${displayName}</div>
+                </div>
+                <div class="separator"></div>
+                <div class="info-row">
+                    <div class="info-label">Type:</div>
+                    <div class="info-value">${objectType}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Geometry:</div>
+                    <div class="info-value">${geometryType}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Distance:</div>
+                    <div class="info-value">${distance.toFixed(2)}m</div>
+                </div>
+                <div class="separator"></div>
+                <div class="info-row">
+                    <div class="info-label">Material:</div>
+                    <div class="info-value">${materialName}</div>
+                </div>
+            `;
+
+      // Add color info if available
+      if (materialColor) {
+        const colorHex = "#" + materialColor.getHexString();
+        infoHTML += `
+                    <div class="info-row">
+                        <div class="info-label">Color:</div>
+                        <div class="info-value">
+                            <span style="display:inline-block;width:12px;height:12px;background:${colorHex};border:1px solid #fff;margin-right:5px;vertical-align:middle;"></span>
+                            ${colorHex.toUpperCase()}
+                        </div>
+                    </div>
+                `;
+      }
 
       if (!isInfoPanelOpen) {
         // Update prompt text based on object type
@@ -1498,6 +1565,39 @@ function animate() {
 
   const time = performance.now();
   const delta = (time - prevTime) / 1000;
+  prevTime = time; // Update time setiap frame
+  if (!isGameActive) {
+    // Increment timer untuk animasi
+    previewTime += delta * 0.2; // Kecepatan transisi
+
+    // Asumsi tengah model ada di sekitar (0, 10, 0)
+    const centerPoint = new THREE.Vector3(0, 10, 0);
+
+    // Hitung posisi kamera berdasarkan waktu (interpolasi antar titik)
+    // Menggunakan Math.sin untuk blending halus antar 3 titik
+    // Ini membuat kamera bergerak dalam jalur kurva halus
+
+    // Simple orbit logic: Radius berputar
+    const radius = 80;
+    const speed = 0.15; // Kecepatan putar
+    const camX = Math.sin(time * 0.0005 * speed) * radius;
+    const camZ = Math.cos(time * 0.0005 * speed) * radius;
+    const camY = 30 + Math.sin(time * 0.0005 * speed * 2) * 10; // Sedikit naik turun
+
+    // Set posisi kamera preview
+    previewCamera.position.set(camX, camY, camZ);
+    previewCamera.lookAt(centerPoint);
+
+    // Render scene menggunakan PREVIEW CAMERA
+    renderer.render(scene, previewCamera);
+    const crosshair = document.getElementById("crosshair");
+    if (crosshair) crosshair.style.display = "none";
+
+    const prompt = document.getElementById("interaction-prompt");
+    if (prompt) prompt.classList.remove("visible");
+
+    return;
+  }
 
   // Log position even when NOT locked (every 2 seconds)
   logInterval += delta;

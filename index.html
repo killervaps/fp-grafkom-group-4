@@ -514,71 +514,100 @@
     <!-- Welcome/Tutorial Screen -->
     <div
       id="welcome-screen"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-family: Arial;
-        z-index: 2000;
-      "
+      class="fixed top-0 left-0 w-full h-full z-[2000] grid grid-cols-1 md:grid-cols-3 font-serif"
     >
-      <h1
-        style="
-          margin-bottom: 30px;
-          font-size: 48px;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        "
-      >
-        Galeri Pendopo Batik 3D
-      </h1>
       <div
-        style="
-          background: rgba(255, 255, 255, 0.1);
-          padding: 30px 50px;
-          border-radius: 15px;
-          margin-bottom: 30px;
-        "
+        class="col-span-1 bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white flex flex-col justify-center px-10 relative shadow-2xl z-20"
       >
-        <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 24px">
-          Controls:
-        </h2>
-        <div style="text-align: left; font-size: 18px; line-height: 2">
-          <div><strong>W</strong> - Move Forward</div>
-          <div><strong>S</strong> - Move Backward</div>
-          <div><strong>A</strong> - Move Left</div>
-          <div><strong>D</strong> - Move Right</div>
-          <div style="margin-top: 15px">
-            <strong>Mouse</strong> - Look Around
+        <div
+          class="absolute inset-0 opacity-10 bg-[url('./assets/megamendung.jpg')] bg-cover mix-blend-overlay"
+        ></div>
+
+        <div class="relative z-10">
+          <h3
+            class="text-amber-500 tracking-[0.3em] text-xs font-sans font-bold mb-3 uppercase"
+          >
+            Virtual Tour
+          </h3>
+
+          <h1
+            class="text-5xl md:text-6xl font-bold mb-6 leading-tight drop-shadow-lg"
+          >
+            Galeri <br />
+            <span
+              class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 italic"
+              >Pendopo Batik</span
+            >
+          </h1>
+
+          <p class="text-slate-300 mb-10 text-lg max-w-md leading-relaxed">
+            Jelajahi keindahan arsitektur pendopo tradisional dan rasakan
+            pengalaman membatik secara virtual dalam ruang 3D yang imersif.
+          </p>
+
+          <div class="flex flex-col gap-4 max-w-xs font-sans">
+            <button
+              id="start-btn"
+              class="group relative px-8 py-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition-all duration-300 shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.6)] flex items-center justify-between overflow-hidden"
+            >
+              <span class="relative z-10 tracking-wider">MULAI JELAJAH</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 transform group-hover:translate-x-1 transition-transform relative z-10"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </button>
+
+            <button
+              onclick="document.getElementById('controls-modal').classList.remove('hidden')"
+              class="px-8 py-4 bg-transparent border-2 border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white font-bold rounded-lg transition-all duration-300 flex items-center justify-between"
+            >
+              <span class="tracking-wider">KONTROL</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+                />
+              </svg>
+            </button>
           </div>
-          <div><strong>ESC</strong> - Release Mouse</div>
+        </div>
+
+        <div
+          class="absolute bottom-6 left-10 text-slate-500 text-xs font-sans tracking-widest"
+        >
+          &copy; 2025 GALERI PENDOPO 3D
         </div>
       </div>
-      <button
-        id="start-btn"
-        style="
-          padding: 20px 60px;
-          font-size: 24px;
-          cursor: pointer;
-          background: #4caf50;
-          color: white;
-          border: none;
-          border-radius: 10px;
-          transition: all 0.3s;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        "
-      >
-        Click to Start
-      </button>
-    </div>
 
+      <div class="col-span-1 md:col-span-2 relative pointer-events-none">
+        <div
+          class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-900 to-transparent z-10"
+        ></div>
+        <div
+          class="absolute bottom-10 right-10 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-white/80 text-xs font-mono animate-pulse"
+        >
+          ● LIVE PREVIEW
+        </div>
+      </div>
+    </div>
     <!-- Pause Screen -->
     <div
       id="pause-screen"
