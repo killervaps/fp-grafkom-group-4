@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Galeri Pendopo Batik 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body {
         margin: 0;
@@ -486,65 +487,273 @@
     </div>
 
     <!-- Virtual Canting Modal -->
-    <div id="canting-modal">
-      <div class="canting-container">
+    <div id="canting-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm hidden items-center justify-center z-[3000] p-4">
+      <div class="bg-gradient-to-br from-amber-900/95 to-orange-950/95 rounded-2xl p-6 md:p-8 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-4 border-amber-700/60" style="box-shadow: 0 0 40px rgba(217, 119, 6, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.3);">
         <!-- Motif Selection Screen -->
         <div id="motif-selection">
-          <div class="canting-header">
-            <h1 class="canting-title">🎨 Virtual Canting</h1>
-            <p class="canting-subtitle">
-              Choose a batik motif to apply
-            </p>
+          <!-- Header -->
+          <div class="text-center mb-6 md:mb-8 border-b-2 border-amber-600/50 pb-4">
+            <h1 class="text-3xl md:text-4xl font-bold text-amber-100 mb-2 drop-shadow-lg font-serif" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(217, 119, 6, 0.3);">🎨 Virtual Canting</h1>
+            <p class="text-amber-300/90 text-base md:text-lg font-serif">Pilih motif batik atau buat desain sendiri</p>
           </div>
 
-          <div class="motif-grid">
-            <div
-              class="motif-card"
-              onclick="selectMotif('./assets/megamendung.jpg')"
-            >
-              <img
-                src="./assets/megamendung.jpg"
-                alt="Mega Mendung"
-                class="motif-preview"
-              />
-              <div class="motif-info">
-                <h3>Mega Mendung</h3>
-                <p>
-                  Traditional cloud pattern from Cirebon. Symbolizes patience
-                  and calmness.
-                </p>
+          <!-- Carousel Container -->
+          <div class="relative mb-4 md:mb-6">
+            <!-- Grid of Motifs -->
+            <div id="motif-carousel" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
+              <!-- Box 1: Create Custom Pattern -->
+              <div class="group cursor-pointer" onclick="createCustomPattern()">
+                <div class="bg-gradient-to-br from-yellow-700 to-amber-800 rounded-lg p-6 md:p-8 h-32 md:h-40 flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-xl border-3 border-yellow-600/60" style="box-shadow: 0 4px 15px rgba(202, 138, 4, 0.4), inset 0 2px 8px rgba(0, 0, 0, 0.2);">
+                  <svg class="w-12 h-12 md:w-16 md:h-16 text-amber-100 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  <span class="text-amber-100 font-bold text-xs md:text-sm">Buat Baru</span>
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Pola Kustom</p>
               </div>
+
+              <!-- Box 2-8: Batik Patterns -->
+              <div class="group cursor-pointer" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Mega Mendung" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Mega Mendung</p>
+              </div>
+
+              <div class="group cursor-pointer" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Parang Rusak" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Parang Rusak</p>
+              </div>
+
+              <div class="group cursor-pointer" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Kawung" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Kawung</p>
+              </div>
+
+              <div class="group cursor-pointer" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Truntum" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Truntum</p>
+              </div>
+
+              <div class="group cursor-pointer" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Sekar Jagad" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Sekar Jagad</p>
+              </div>
+
+              <div class="group cursor-pointer" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Sidoluhur" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Sidoluhur</p>
+              </div>
+
+              <div class="group cursor-pointer" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Nitik" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Nitik</p>
+              </div>
+
+              <!-- Page 2 Patterns (Hidden by default) -->
+              <div class="group cursor-pointer page-2-item hidden" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Sogan" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Sogan</p>
+              </div>
+
+              <div class="group cursor-pointer page-2-item hidden" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Lereng" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Lereng</p>
+              </div>
+
+              <div class="group cursor-pointer page-2-item hidden" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Gurda" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Gurda</p>
+              </div>
+
+              <div class="group cursor-pointer page-2-item hidden" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Pring Sedapur" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Pring Sedapur</p>
+              </div>
+
+              <div class="group cursor-pointer page-2-item hidden" onclick="selectMotif('./assets/megamendung.jpg')">
+                <div class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl" style="box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+                  <img src="./assets/megamendung.jpg" alt="Tambal" class="w-full h-32 md:h-40 object-cover">
+                </div>
+                <p class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm">Tambal</p>
+              </div>
+            </div>
+
+            <!-- Carousel Navigation -->
+            <div class="flex justify-center items-center gap-3 md:gap-4">
+              <button onclick="previousPage()" id="prev-btn" class="bg-amber-800/50 hover:bg-amber-700/70 text-amber-200 rounded-full p-2 md:p-3 transition-all duration-300 border-2 border-amber-600/60 hover:scale-110" style="box-shadow: 0 2px 8px rgba(120, 53, 15, 0.4);">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+              <div id="page-indicators" class="flex gap-2">
+                <!-- Page indicators will be generated dynamically -->
+              </div>
+              <button onclick="nextPage()" id="next-btn" class="bg-amber-800/50 hover:bg-amber-700/70 text-amber-200 rounded-full p-2 md:p-3 transition-all duration-300 border-2 border-amber-600/60 hover:scale-110" style="box-shadow: 0 2px 8px rgba(120, 53, 15, 0.4);">
+                <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
             </div>
           </div>
 
-          <button class="close-btn" onclick="closeCantingModal()">
-            Close
+          <!-- Close Button -->
+          <button onclick="closeCantingModal()" class="w-full bg-red-900/40 hover:bg-red-800/60 text-red-300 border-3 border-red-800/70 py-2 md:py-3 px-6 md:px-8 rounded-lg font-bold text-base md:text-lg transition-all duration-300 hover:scale-105" style="box-shadow: 0 4px 12px rgba(127, 29, 29, 0.4), inset 0 2px 6px rgba(0, 0, 0, 0.3);">
+            Tutup
           </button>
         </div>
 
         <!-- Canvas Screen (Drawing) -->
-        <div id="canvas-screen">
-          <div class="canting-header">
-            <h1 class="canting-title">🖌️ Apply the Motif</h1>
-            <p class="canvas-instructions">
-              <strong>Hold and drag</strong> your mouse to reveal the batik
-              pattern underneath
+        <div id="canvas-screen" class="hidden flex-col items-center gap-6">
+          <div class="text-center">
+            <h1 class="text-4xl font-bold text-white mb-3 drop-shadow-lg">🖌️ Apply the Motif</h1>
+            <p class="text-blue-300 text-lg">
+              <strong>Hold and drag</strong> your mouse to reveal the batik pattern underneath
             </p>
           </div>
 
-          <canvas id="canting-canvas"></canvas>
+          <canvas id="canting-canvas" class="border-3 border-blue-500/50 rounded-2xl shadow-2xl bg-white"></canvas>
 
-          <div style="display: flex; gap: 15px">
+          <div class="flex gap-4">
             <button
-              class="back-btn"
-              onclick="document.getElementById('canvas-screen').style.display='none'; document.getElementById('motif-selection').style.display='block';"
+              onclick="document.getElementById('canvas-screen').classList.add('hidden'); document.getElementById('canvas-screen').classList.remove('flex'); document.getElementById('motif-selection').classList.remove('hidden');"
+              class="bg-gray-500/20 hover:bg-gray-500/30 text-gray-300 hover:text-white border-2 border-gray-500 py-3 px-8 rounded-xl font-bold transition-all duration-300 hover:scale-105"
             >
               ← Back
             </button>
-            <button class="finish-btn" onclick="finishCanting()">
+            <button onclick="finishCanting()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 px-12 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300">
               ✓ Finish & Apply
             </button>
           </div>
+        </div>
+
+        <!-- Custom Pattern Drawing Screen -->
+        <div id="custom-pattern-screen" class="hidden flex-col items-center gap-4 md:gap-6">
+          <div class="text-center border-b-2 border-amber-600/50 pb-3 md:pb-4 w-full">
+            <h1 class="text-2xl md:text-4xl font-bold text-amber-100 mb-2 drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(217, 119, 6, 0.3);">✏️ Buat Pola Batik</h1>
+            <p class="text-amber-300/90 text-sm md:text-lg font-serif">
+              Gambar pola batik Anda sendiri
+            </p>
+          </div>
+
+          <!-- Brush Controls -->
+          <div class="bg-amber-950/60 rounded-xl p-3 md:p-4 w-full border-2 border-amber-700/50" style="box-shadow: 0 4px 15px rgba(120, 53, 15, 0.4), inset 0 2px 8px rgba(0, 0, 0, 0.2);">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <!-- Color Picker -->
+              <div class="flex flex-col gap-2">
+                <label class="text-amber-200 font-bold text-sm md:text-base">🎨 Warna Kuas:</label>
+                <div class="flex gap-2 items-center">
+                  <input type="color" id="brush-color" value="#8B4513" class="w-12 h-12 md:w-14 md:h-14 rounded-lg cursor-pointer border-3 border-amber-600/70" style="box-shadow: 0 2px 8px rgba(120, 53, 15, 0.4);">
+                  <div class="flex flex-wrap gap-2">
+                    <button onclick="setBrushColor('#8B4513')" class="w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 border-amber-600/70 hover:scale-110 transition-transform" style="background-color: #8B4513; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" title="Coklat Sogan"></button>
+                    <button onclick="setBrushColor('#1E3A8A')" class="w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 border-amber-600/70 hover:scale-110 transition-transform" style="background-color: #1E3A8A; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" title="Biru Indigo"></button>
+                    <button onclick="setBrushColor('#DC2626')" class="w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 border-amber-600/70 hover:scale-110 transition-transform" style="background-color: #DC2626; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" title="Merah"></button>
+                    <button onclick="setBrushColor('#000000')" class="w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 border-amber-600/70 hover:scale-110 transition-transform" style="background-color: #000000; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" title="Hitam"></button>
+                    <button onclick="setBrushColor('#FFFFFF')" class="w-8 h-8 md:w-10 md:h-10 rounded-lg border-2 border-amber-600/70 hover:scale-110 transition-transform" style="background-color: #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" title="Putih"></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Thickness Slider -->
+              <div class="flex flex-col gap-2">
+                <label class="text-amber-200 font-bold text-sm md:text-base">📏 Ketebalan: <span id="brush-thickness-value" class="text-amber-100">5</span>px</label>
+                <input type="range" id="brush-thickness" min="1" max="50" value="5" class="w-full h-3 rounded-lg cursor-pointer" style="accent-color: #d97706;">
+              </div>
+            </div>
+
+            <!-- Additional Controls -->
+            <div class="flex flex-wrap gap-2 md:gap-3 mt-3 md:mt-4">
+              <button onclick="clearCustomCanvas()" class="flex-1 bg-red-900/40 hover:bg-red-800/60 text-red-300 border-2 border-red-800/70 py-2 px-4 rounded-lg font-bold text-sm md:text-base transition-all duration-300 hover:scale-105" style="box-shadow: 0 2px 8px rgba(127, 29, 29, 0.4);">
+                🗑️ Hapus Semua
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas -->
+          <canvas id="custom-canvas" class="border-4 border-amber-700/70 rounded-xl shadow-2xl bg-white cursor-crosshair" style="box-shadow: 0 8px 30px rgba(120, 53, 15, 0.5), inset 0 2px 10px rgba(0, 0, 0, 0.2); max-width: 100%; height: auto;"></canvas>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col gap-3 w-full">
+            <div class="flex gap-3 md:gap-4 w-full">
+              <button
+                onclick="backToMotifSelection()"
+                class="flex-1 md:flex-none bg-gray-700/40 hover:bg-gray-600/60 text-gray-300 hover:text-white border-2 border-gray-600/70 py-2 md:py-3 px-6 md:px-8 rounded-lg font-bold text-sm md:text-base transition-all duration-300 hover:scale-105"
+              >
+                ← Kembali
+              </button>
+              <button onclick="enhanceWithAI()" id="enhance-btn" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white py-2 md:py-3 px-6 md:px-10 rounded-lg font-bold text-sm md:text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300" style="box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);">
+                ✨ Enhance dengan AI
+              </button>
+              <button onclick="finishCustomPattern()" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2 md:py-3 px-6 md:px-10 rounded-lg font-bold text-sm md:text-base shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300" style="box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);">
+                ✓ Terapkan
+              </button>
+            </div>
+            
+            <!-- Loading Indicator (hidden by default) -->
+            <div id="ai-loading" class="hidden bg-purple-900/30 border-2 border-purple-600/50 rounded-lg p-4 text-center">
+              <div class="flex items-center justify-center gap-3">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-400"></div>
+                <span class="text-purple-300 font-medium">AI sedang memproses pola batik Anda...</span>
+              </div>
+              <p class="text-purple-400/70 text-sm mt-2">Ini mungkin memakan waktu 10-30 detik</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Enhanced Preview Screen -->
+        <div id="ai-preview-screen" class="hidden flex-col items-center gap-4 md:gap-6">
+          <div class="text-center border-b-2 border-amber-600/50 pb-3 md:pb-4 w-full">
+            <h1 class="text-2xl md:text-4xl font-bold text-amber-100 mb-2 drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(217, 119, 6, 0.3);">✨ Hasil Enhancement AI</h1>
+            <p class="text-amber-300/90 text-sm md:text-lg font-serif">
+              Pilih versi yang ingin Anda gunakan
+            </p>
+          </div>
+
+          <!-- Comparison View -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+            <!-- Original -->
+            <div class="bg-amber-950/40 rounded-xl p-4 border-2 border-amber-700/50">
+              <h3 class="text-amber-200 font-bold text-center mb-3">Gambar Asli</h3>
+              <canvas id="preview-original" class="w-full border-3 border-amber-700/70 rounded-lg" style="box-shadow: 0 4px 15px rgba(120, 53, 15, 0.4);"></canvas>
+              <button onclick="selectOriginalPattern()" class="w-full mt-3 bg-amber-700/50 hover:bg-amber-600/70 text-amber-100 py-2 px-4 rounded-lg font-bold text-sm transition-all duration-300 hover:scale-105">
+                Pilih yang Ini
+              </button>
+            </div>
+
+            <!-- AI Enhanced -->
+            <div class="bg-purple-950/40 rounded-xl p-4 border-2 border-purple-600/50">
+              <h3 class="text-purple-200 font-bold text-center mb-3">✨ AI Enhanced</h3>
+              <img id="preview-enhanced" class="w-full border-3 border-purple-600/70 rounded-lg" style="box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);" />
+              <button onclick="selectEnhancedPattern()" class="w-full mt-3 bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white py-2 px-4 rounded-lg font-bold text-sm transition-all duration-300 hover:scale-105">
+                Pilih yang Ini ⭐
+              </button>
+            </div>
+          </div>
+
+          <!-- Back Button -->
+          <button onclick="backToCustomCanvas()" class="bg-gray-700/40 hover:bg-gray-600/60 text-gray-300 hover:text-white border-2 border-gray-600/70 py-2 md:py-3 px-8 rounded-lg font-bold text-sm md:text-base transition-all duration-300 hover:scale-105">
+            ← Kembali ke Editor
+          </button>
         </div>
       </div>
     </div>

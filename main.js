@@ -9,7 +9,7 @@ let moveForward = false,
   moveRight = false;
 let velocity = new THREE.Vector3();
 let direction = new THREE.Vector3();
-const moveSpeed = 160.0;
+const moveSpeed = 400.0;
 let prevTime = performance.now();
 let frameCount = 0;
 let logInterval = 0;
@@ -26,6 +26,11 @@ let cantingObject = null; // Reference to Object_3_4
 let cantingOriginalMaterial = null; // Store original material
 let isCantingModalOpen = false; // Track modal state
 let isLookingAtCantingObject = false; // Track if player is looking at Object_3_4
+
+// Carousel System
+let currentPage = 1;
+let totalPages = 2; // We have 2 pages (8 items on page 1, 5 items on page 2)
+const itemsPerPage = 8;
 
 // Interaction system
 const INTERACTION_DISTANCE = 20.0; // Distance threshold for interaction (meters)
@@ -64,6 +69,11 @@ function openCantingModal() {
   isCantingModalOpen = true;
   controls.unlock();
   document.getElementById('canting-modal').style.display = 'flex';
+  
+  // Reset to page 1 and update display
+  currentPage = 1;
+  updateCarouselDisplay();
+  
   console.log('Canting modal opened!');
 }
 
@@ -87,6 +97,16 @@ function selectMotif(motifPath) {
 
 let cantingCanvas, cantingCtx, isDrawing = false;
 let bgImageLoaded = false; // Track if background image is loaded
+
+// Custom Pattern Drawing System
+let customCanvas, customCtx;
+let isCustomDrawing = false;
+let brushColor = '#8B4513'; // Default brown/sogan color
+let brushThickness = 5;
+let enhancedImageData = null; // Store AI enhanced image
+
+// URL Cloud Function untuk AI Enhancement
+const AI_BACKEND_URL = 'https://us-central1-healthy-spark-458003-h1.cloudfunctions.net/generateBatik';
 
 function initCantingCanvas(motifPath) {
   console.log('🎨 Initializing canvas with motif:', motifPath);
@@ -274,11 +294,403 @@ function finishCanting() {
   );
 }
 
+// Carousel Functions
+function updateCarouselDisplay() {
+  const carousel = document.getElementById('motif-carousel');
+  const allItems = carousel.querySelectorAll('.group');
+  
+  // Hide all items first
+  allItems.forEach(item => {
+    item.classList.add('hidden');
+  });
+  
+  // Show items for current page
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, allItems.length);
+  
+  for (let i = startIndex; i < endIndex; i++) {
+    allItems[i].classList.remove('hidden');
+  }
+  
+  // Update page indicators
+  updatePageIndicators();
+  
+  // Update button states
+  updateNavigationButtons();
+  
+  console.log(`Carousel: Page ${currentPage}/${totalPages}, showing items ${startIndex + 1}-${endIndex}`);
+}
+
+function updatePageIndicators() {
+  const indicatorContainer = document.getElementById('page-indicators');
+  if (!indicatorContainer) return;
+  
+  // Clear existing indicators
+  indicatorContainer.innerHTML = '';
+  
+  // Create indicators for each page with vintage styling
+  for (let i = 1; i <= totalPages; i++) {
+    const indicator = document.createElement('span');
+    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
+      i === currentPage ? 'bg-amber-400 w-8' : 'bg-amber-800/40 hover:bg-amber-700/60'
+    }`;
+    indicator.style.boxShadow = i === currentPage 
+      ? '0 0 8px rgba(251, 191, 36, 0.6)' 
+      : '0 2px 4px rgba(120, 53, 15, 0.3)';
+    indicator.onclick = () => goToPage(i);
+    indicatorContainer.appendChild(indicator);
+  }
+}
+
+function updateNavigationButtons() {
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  
+  if (prevBtn) {
+    if (currentPage === 1) {
+      prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      prevBtn.disabled = true;
+    } else {
+      prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      prevBtn.disabled = false;
+    }
+  }
+  
+  if (nextBtn) {
+    if (currentPage === totalPages) {
+      nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      nextBtn.disabled = true;
+    } else {
+      nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      nextBtn.disabled = false;
+    }
+  }
+}
+
+function previousPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    updateCarouselDisplay();
+  }
+}
+
+function nextPage() {
+  if (currentPage < totalPages) {
+    currentPage++;
+    updateCarouselDisplay();
+  }
+}
+
+function goToPage(pageNum) {
+  if (pageNum >= 1 && pageNum <= totalPages) {
+    currentPage = pageNum;
+    updateCarouselDisplay();
+  }
+}
+
+function createCustomPattern() {
+  console.log('Opening custom pattern creator...');
+  
+  // Hide motif selection, show custom pattern screen
+  document.getElementById('motif-selection').style.display = 'none';
+  document.getElementById('custom-pattern-screen').classList.remove('hidden');
+  document.getElementById('custom-pattern-screen').classList.add('flex');
+  
+  // Initialize custom canvas
+  initCustomCanvas();
+}
+
+// Custom Pattern Drawing Functions
+function initCustomCanvas() {
+  customCanvas = document.getElementById('custom-canvas');
+  customCtx = customCanvas.getContext('2d');
+  
+  // Set canvas size
+  customCanvas.width = 600;
+  customCanvas.height = 600;
+  
+  // Fill with white background
+  customCtx.fillStyle = 'white';
+  customCtx.fillRect(0, 0, customCanvas.width, customCanvas.height);
+  
+  // Setup drawing event listeners
+  customCanvas.addEventListener('mousedown', startCustomDrawing);
+  customCanvas.addEventListener('mousemove', drawCustom);
+  customCanvas.addEventListener('mouseup', stopCustomDrawing);
+  customCanvas.addEventListener('mouseleave', stopCustomDrawing);
+  
+  // Setup brush controls
+  const colorInput = document.getElementById('brush-color');
+  const thicknessInput = document.getElementById('brush-thickness');
+  const thicknessValue = document.getElementById('brush-thickness-value');
+  
+  colorInput.addEventListener('change', (e) => {
+    brushColor = e.target.value;
+    console.log('Brush color changed to:', brushColor);
+  });
+  
+  thicknessInput.addEventListener('input', (e) => {
+    brushThickness = parseInt(e.target.value);
+    thicknessValue.textContent = brushThickness;
+    console.log('Brush thickness changed to:', brushThickness);
+  });
+  
+  console.log('Custom canvas initialized (600x600)');
+}
+
+function startCustomDrawing(e) {
+  isCustomDrawing = true;
+  const rect = customCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  // Begin new path
+  customCtx.beginPath();
+  customCtx.moveTo(x, y);
+  
+  console.log('✏️ Drawing started at:', Math.round(x), Math.round(y));
+}
+
+function drawCustom(e) {
+  if (!isCustomDrawing) return;
+  
+  const rect = customCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  // Draw line
+  customCtx.strokeStyle = brushColor;
+  customCtx.lineWidth = brushThickness;
+  customCtx.lineCap = 'round';
+  customCtx.lineJoin = 'round';
+  
+  customCtx.lineTo(x, y);
+  customCtx.stroke();
+}
+
+function stopCustomDrawing() {
+  if (isCustomDrawing) {
+    console.log('✏️ Drawing stopped');
+  }
+  isCustomDrawing = false;
+  customCtx.beginPath(); // Reset path
+}
+
+function setBrushColor(color) {
+  brushColor = color;
+  document.getElementById('brush-color').value = color;
+  console.log('Brush color set to:', color);
+}
+
+function clearCustomCanvas() {
+  if (confirm('Hapus semua gambar? Tindakan ini tidak dapat dibatalkan.')) {
+    customCtx.fillStyle = 'white';
+    customCtx.fillRect(0, 0, customCanvas.width, customCanvas.height);
+    console.log('Canvas cleared');
+  }
+}
+
+function backToMotifSelection() {
+  document.getElementById('custom-pattern-screen').classList.add('hidden');
+  document.getElementById('custom-pattern-screen').classList.remove('flex');
+  document.getElementById('motif-selection').style.display = 'block';
+}
+
+function finishCustomPattern() {
+  if (!cantingObject) {
+    console.error('Cannot apply texture: Object_3_4 not found');
+    alert('Error: Objek target tidak ditemukan!');
+    return;
+  }
+  
+  // Convert canvas to data URL (base64 image)
+  const dataURL = customCanvas.toDataURL('image/png');
+  
+  applyTextureToObject(dataURL);
+}
+
+// AI Enhancement Functions
+async function enhanceWithAI() {
+  const loadingEl = document.getElementById('ai-loading');
+  const enhanceBtn = document.getElementById('enhance-btn');
+  
+  try {
+    // Show loading
+    loadingEl.classList.remove('hidden');
+    enhanceBtn.disabled = true;
+    enhanceBtn.innerHTML = '⏳ Memproses...';
+    
+    console.log('🚀 Memulai AI enhancement...');
+    
+    // Get canvas data
+    const imageBase64 = customCanvas.toDataURL('image/png');
+    
+    // Send to backend
+    const response = await fetch(AI_BACKEND_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ imageBase64 })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ Backend Error Response:', errorData);
+      console.error('❌ Error Details:', errorData.details);
+      throw new Error(errorData.error || 'Gagal menghubungi AI backend');
+    }
+    
+    const data = await response.json();
+    console.log('📥 Response dari backend:', data);
+    
+    if (!data.success) {
+      console.error('❌ AI Error:', data.error);
+      console.error('❌ Error Details:', data.details);
+      throw new Error(data.error || 'AI gagal memproses gambar');
+    }
+    
+    console.log('✅ AI enhancement berhasil!');
+    
+    // Store enhanced image
+    enhancedImageData = data.image;
+    
+    // Show preview screen
+    showAIPreview(imageBase64, data.image);
+    
+  } catch (error) {
+    console.error('❌ Error AI enhancement:', error);
+    
+    let errorMessage = 'Gagal enhance dengan AI: ' + error.message;
+    
+    if (error.message.includes('Failed to fetch')) {
+      errorMessage = 'Tidak dapat terhubung ke server AI. Pastikan backend sudah di-deploy dan URL sudah benar.';
+    }
+    
+    alert(errorMessage);
+    
+  } finally {
+    // Hide loading
+    loadingEl.classList.add('hidden');
+    enhanceBtn.disabled = false;
+    enhanceBtn.innerHTML = '✨ Enhance dengan AI';
+  }
+}
+
+function showAIPreview(originalBase64, enhancedBase64) {
+  // Hide custom canvas screen
+  document.getElementById('custom-pattern-screen').classList.add('hidden');
+  document.getElementById('custom-pattern-screen').classList.remove('flex');
+  
+  // Show preview screen
+  const previewScreen = document.getElementById('ai-preview-screen');
+  previewScreen.classList.remove('hidden');
+  previewScreen.classList.add('flex');
+  
+  // Show original
+  const originalCanvas = document.getElementById('preview-original');
+  const originalCtx = originalCanvas.getContext('2d');
+  originalCanvas.width = 400;
+  originalCanvas.height = 400;
+  
+  const originalImg = new Image();
+  originalImg.onload = function() {
+    originalCtx.drawImage(originalImg, 0, 0, 400, 400);
+  };
+  originalImg.src = originalBase64;
+  
+  // Show enhanced
+  const enhancedImg = document.getElementById('preview-enhanced');
+  enhancedImg.src = enhancedBase64;
+  
+  console.log('👁️ Menampilkan preview perbandingan');
+}
+
+function selectOriginalPattern() {
+  console.log('Menggunakan pola asli');
+  const originalData = customCanvas.toDataURL('image/png');
+  applyTextureToObject(originalData);
+}
+
+function selectEnhancedPattern() {
+  console.log('Menggunakan pola AI enhanced');
+  if (enhancedImageData) {
+    applyTextureToObject(enhancedImageData);
+  } else {
+    alert('Error: Data AI enhanced tidak ditemukan');
+  }
+}
+
+function applyTextureToObject(textureDataURL) {
+  if (!cantingObject) {
+    console.error('Cannot apply texture: Object_3_4 not found');
+    alert('Error: Objek target tidak ditemukan!');
+    return;
+  }
+  
+  // Load texture and apply to Object_3_4
+  const textureLoader = new THREE.TextureLoader();
+  textureLoader.load(
+    textureDataURL,
+    function(texture) {
+      // Apply custom texture to the object
+      cantingObject.material = new THREE.MeshStandardMaterial({
+        map: texture,
+        roughness: 0.7,
+        metalness: 0.1,
+        side: THREE.DoubleSide
+      });
+      
+      console.log('✨ Texture applied to Object_3_4!');
+      
+      // Close modal and return to game
+      closeCantingModal();
+      
+      // Reset screens
+      document.getElementById('custom-pattern-screen').classList.add('hidden');
+      document.getElementById('custom-pattern-screen').classList.remove('flex');
+      document.getElementById('ai-preview-screen').classList.add('hidden');
+      document.getElementById('ai-preview-screen').classList.remove('flex');
+      document.getElementById('motif-selection').style.display = 'block';
+      
+      // Reset enhanced data
+      enhancedImageData = null;
+    },
+    undefined,
+    function(error) {
+      console.error('Failed to apply texture:', error);
+      alert('Error: Gagal menerapkan pola!');
+    }
+  );
+}
+
+function backToCustomCanvas() {
+  // Hide preview screen
+  document.getElementById('ai-preview-screen').classList.add('hidden');
+  document.getElementById('ai-preview-screen').classList.remove('flex');
+  
+  // Show custom canvas screen
+  document.getElementById('custom-pattern-screen').classList.remove('hidden');
+  document.getElementById('custom-pattern-screen').classList.add('flex');
+}
+
 // Expose functions to global scope for HTML onclick handlers
 window.openCantingModal = openCantingModal;
 window.closeCantingModal = closeCantingModal;
 window.selectMotif = selectMotif;
 window.finishCanting = finishCanting;
+window.previousPage = previousPage;
+window.nextPage = nextPage;
+window.goToPage = goToPage;
+window.createCustomPattern = createCustomPattern;
+window.setBrushColor = setBrushColor;
+window.clearCustomCanvas = clearCustomCanvas;
+window.backToMotifSelection = backToMotifSelection;
+window.finishCustomPattern = finishCustomPattern;
+window.enhanceWithAI = enhanceWithAI;
+window.selectOriginalPattern = selectOriginalPattern;
+window.selectEnhancedPattern = selectEnhancedPattern;
+window.backToCustomCanvas = backToCustomCanvas;
 
 console.log('Canting functions exposed to window:', {
   openCantingModal: typeof window.openCantingModal,
