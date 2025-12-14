@@ -21,7 +21,6 @@ const raycaster = new THREE.Raycaster();
 const centerScreen = new THREE.Vector2(0, 0); // Koordinat tengah layar (selalu 0,0)
 let loadedModel = null; // Wadah untuk model agar bisa diakses di animate()
 const infoPanel = document.getElementById("info-panel");
-const infoContent = document.getElementById("info-content");
 const interactionPrompt = document.getElementById("interaction-prompt");
 
 // Virtual Canting System
@@ -96,6 +95,203 @@ function selectMotif(motifPath) {
 
   // Initialize canvas
   initCantingCanvas(motifPath);
+}
+
+// Batik Data Information Database
+const batikDatabase = {
+  "Mega Mendung": {
+    description:
+      'Batik ini memiliki akar sejarah yang kuat dari daerah Yogyakarta dan Solo. Nama "Mega Mendung" sendiri berasal dari awan soga, yang merupakan sumber pewarna alami untuk kain ini.',
+    philosophy: [
+      "Motif parang melambangkan semangat yang terus menerus tanpa pernah mengalami kelelahan.",
+      "Motif kawung menggambarkan umur panjang dan kesucian, menjadi harapan bagi pemakainya untuk selalu diberkahi kesehatan.",
+      "Kemudian ada motif truntum melambangkan cinta yang tulus, abadi, dan terus berkembang, menciptakan ikatan yang kuat antar individu.",
+    ],
+  },
+  "Parang Rusak": {
+    description:
+      "Batik dengan motif parang rusak yang menampilkan pola garis diagonal yang dinamis dan berkelanjutan. Motif ini melambangkan kekuatan dan semangat yang tidak tergoyahkan.",
+    philosophy: [
+      "Motif parang merepresentasikan semangat yang terus berjalan tanpa henti.",
+      "Melambangkan ketahanan dan kekuatan dalam menghadapi tantangan hidup.",
+      "Mencerminkan perjalanan yang panjang namun penuh makna.",
+    ],
+  },
+  Kawung: {
+    description:
+      "Kawung adalah motif batik tradisional yang menampilkan pola bunga yang tersusun rapi. Motif ini berasal dari pohon kawung dan dianggap sebagai lambang kehidupan yang berkelanjutan.",
+    philosophy: [
+      "Motif kawung melambangkan umur panjang dan kesejahteraan.",
+      "Mencerminkan harapan akan kesehatan dan keberuntungan dalam hidup.",
+      "Menggambarkan keseimbangan dan harmoni dalam kehidupan sehari-hari.",
+    ],
+  },
+  Truntum: {
+    description:
+      "Batik Truntum memiliki makna yang dalam tentang pertumbuhan dan perkembangan. Motif bunga yang berkembang melambangkan cinta yang terus tumbuh dan berkembang.",
+    philosophy: [
+      'Truntum berarti "tumbuh" dalam bahasa Jawa, melambangkan pertumbuhan spiritual.',
+      "Motif ini mencerminkan cinta yang abadi dan terus berkembang seiring waktu.",
+      "Melambangkan harapan akan kehidupan yang terus bertumbuh dan berkembang ke arah yang lebih baik.",
+    ],
+  },
+  "Sekar Jagad": {
+    description:
+      "Sekar Jagad adalah batik dengan motif bunga yang indah mewakili keindahan alam semesta. Motif ini menggabungkan berbagai elemen alam dalam satu kesatuan yang harmonis.",
+    philosophy: [
+      'Sekar Jagad berarti "bunga dunia" yang melambangkan keindahan universal.',
+      "Mencerminkan kebijaksanaan dalam melihat keindahan di setiap aspek kehidupan.",
+      "Melambangkan persatuan berbagai elemen menciptakan harmoni yang sempurna.",
+    ],
+  },
+  Sidoluhur: {
+    description:
+      "Batik Sidoluhur adalah motif klasik yang menampilkan pola yang kompleks dan terstruktur dengan baik. Motif ini mencerminkan keanggunan dan kecanggihan dalam desain tradisional.",
+    philosophy: [
+      "Sidoluhur melambangkan kemuliaan dan kehormatan.",
+      "Motif ini mencerminkan struktur sosial dan hirarki yang harmonis.",
+      "Menggambarkan keinginan untuk mencapai kedudukan tertinggi dengan penuh integritas.",
+    ],
+  },
+  Nitik: {
+    description:
+      "Nitik adalah batik dengan motif titik-titik kecil yang tersusun dengan pola yang teratur. Motif ini menampilkan ketelitian dan presisi dalam setiap detail.",
+    philosophy: [
+      'Nitik berarti "titik" yang melambangkan ketelitian dan fokus dalam setiap tindakan.',
+      "Mencerminkan pentingnya memperhatikan detail kecil yang membentuk kesempurnaan.",
+      "Melambangkan kesabaran dan ketekunan dalam mencapai suatu tujuan.",
+    ],
+  },
+};
+
+// Info Panel Display Functions
+function displayBatikInfo(batikName, batikObject) {
+  console.log("displayBatikInfo called with:", batikName, batikObject);
+  const batikInfo = batikDatabase[batikName] || {
+    description: "Deskripsi batik tidak tersedia.",
+    philosophy: ["Filosofi batik tidak tersedia."],
+  };
+
+  console.log("Batik info found:", batikInfo);
+
+  // Update header
+  document.getElementById("batik-title").textContent = batikName;
+
+  // Update preview image with object's material
+  const previewImg = document.getElementById("batik-preview");
+  previewImg.alt = batikName;
+
+  // Render the object's material to the preview
+  if (batikObject && batikObject.material) {
+    renderMaterialToPreview(batikObject, previewImg);
+  } else {
+    // Fallback: create a solid color preview
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#8B4513";
+    ctx.fillRect(0, 0, 220, 220);
+    previewImg.src = canvas.toDataURL();
+  }
+
+  // Update description
+  document.getElementById("batik-description").textContent =
+    batikInfo.description;
+
+  // Update philosophy
+  const philosophyList = document.getElementById("batik-philosophy");
+  philosophyList.innerHTML = "";
+
+  const philosophyArray = Array.isArray(batikInfo.philosophy)
+    ? batikInfo.philosophy
+    : [batikInfo.philosophy];
+
+  philosophyArray.forEach((point) => {
+    const li = document.createElement("li");
+    li.textContent = point;
+    philosophyList.appendChild(li);
+  });
+
+  // Show panel
+  const infoPanel = document.getElementById("info-panel");
+  console.log("Info panel element:", infoPanel);
+  infoPanel.classList.remove("hidden");
+  controls.unlock(); // Unlock to show cursor and pause the game
+  console.log("Info panel shown. Controls unlocked.");
+  isInfoPanelOpen = true;
+}
+
+// Helper function to render material/texture to preview image and header
+function renderMaterialToPreview(object, imgElement) {
+  const material = object.material;
+  let materialDataUrl = null;
+
+  // If material has a texture map, use it
+  if (material && material.map && material.map.source) {
+    // Get the texture from the material
+    const texture = material.map;
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    const ctx = canvas.getContext("2d");
+
+    // Try to get the image from the texture
+    try {
+      const textureImage = texture.source.data;
+      if (textureImage) {
+        ctx.drawImage(textureImage, 0, 0, 220, 220);
+        materialDataUrl = canvas.toDataURL();
+        imgElement.src = materialDataUrl;
+        console.log("✅ Material texture rendered to preview");
+        applyMaterialToHeader(materialDataUrl);
+        return;
+      }
+    } catch (e) {
+      console.warn("Could not render texture:", e);
+    }
+  }
+
+  // Fallback: render based on material color
+  const canvas = document.createElement("canvas");
+  canvas.width = 220;
+  canvas.height = 220;
+  const ctx = canvas.getContext("2d");
+
+  if (material && material.color) {
+    // Get material color as hex
+    const color = material.color;
+    const hexColor = "#" + color.getHexString().padStart(6, "0").toUpperCase();
+    ctx.fillStyle = hexColor;
+  } else {
+    // Default color
+    ctx.fillStyle = "#8B4513";
+  }
+
+  ctx.fillRect(0, 0, 220, 220);
+  materialDataUrl = canvas.toDataURL();
+  imgElement.src = materialDataUrl;
+  console.log("📋 Material color preview rendered");
+  applyMaterialToHeader(materialDataUrl);
+}
+
+// Helper function to apply material texture to header background
+function applyMaterialToHeader(materialDataUrl) {
+  const header = document.querySelector(".info-header");
+  if (header && materialDataUrl) {
+    header.style.backgroundImage = `url(${materialDataUrl})`;
+    header.style.backgroundSize = "cover";
+    header.style.backgroundPosition = "center";
+    console.log("✅ Material applied to header background");
+  }
+}
+
+function closeInfoPanel() {
+  const infoPanel = document.getElementById("info-panel");
+  infoPanel.classList.add("hidden");
+  controls.lock(); // Lock to hide cursor and resume the game
+  isInfoPanelOpen = false;
+  console.log("Info panel closed. Controls locked.");
 }
 
 let cantingCanvas,
@@ -731,6 +927,8 @@ window.enhanceWithAI = enhanceWithAI;
 window.selectOriginalPattern = selectOriginalPattern;
 window.selectEnhancedPattern = selectEnhancedPattern;
 window.backToCustomCanvas = backToCustomCanvas;
+window.displayBatikInfo = displayBatikInfo;
+window.closeInfoPanel = closeInfoPanel;
 
 console.log("Canting functions exposed to window:", {
   openCantingModal: typeof window.openCantingModal,
@@ -821,10 +1019,21 @@ function init() {
         moveRight = true;
         break;
       case "KeyE":
-        // Toggle info panel when E is pressed
+        // Display batik info panel when E is pressed
+        console.log(
+          "E pressed - currentInteractableObject:",
+          currentInteractableObject,
+          "isLocked:",
+          controls.isLocked
+        );
         if (currentInteractableObject && controls.isLocked) {
-          isInfoPanelOpen = !isInfoPanelOpen;
-          updateInfoPanelVisibility();
+          const batikName = currentInteractableObject.name || "Batik";
+          console.log("Opening info panel for:", batikName);
+          // Extract batik name from object name (e.g., "batik_Mega Mendung" -> "Mega Mendung")
+          const cleanName = batikName.replace(/^batik_/i, "");
+          console.log("Clean name:", cleanName);
+          // Pass the actual object so we can render its material
+          displayBatikInfo(cleanName, currentInteractableObject);
         }
         break;
       case "ShiftLeft":
@@ -1118,87 +1327,24 @@ function updateRaycaster() {
       (isBatik || isCantingObj) && distance <= INTERACTION_DISTANCE;
 
     if (canInteract) {
-      // Show interaction prompt
+      // Show interaction prompt only if info panel is not already open
       currentInteractableObject = objectHit;
       isLookingAtCantingObject = isCantingObj;
 
-      // Update prompt text based on object type
-      if (isCantingObj) {
-        interactionPrompt.innerHTML =
-          'Press <span class="key">E</span> to view info | <span class="key">Q</span> to use Canting';
+      if (!isInfoPanelOpen) {
+        // Update prompt text based on object type
+        if (isCantingObj) {
+          interactionPrompt.innerHTML =
+            'Press <span class="key">E</span> to view info | <span class="key">Q</span> to use Canting';
+        } else {
+          interactionPrompt.innerHTML =
+            'Press <span class="key">E</span> to view info';
+        }
+
+        interactionPrompt.classList.add("visible");
       } else {
-        interactionPrompt.innerHTML =
-          'Press <span class="key">E</span> to view info';
+        interactionPrompt.classList.remove("visible");
       }
-
-      interactionPrompt.classList.add("visible");
-
-      // Build info HTML (will be shown when E is pressed)
-      let infoHTML = `
-                <div class="info-row">
-                    <div class="info-label">Object:</div>
-                    <div class="info-value highlight">${displayName}</div>
-                </div>
-                <div class="separator"></div>
-                <div class="info-row">
-                    <div class="info-label">Type:</div>
-                    <div class="info-value">${objectType}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Geometry:</div>
-                    <div class="info-value">${geometryType}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Distance:</div>
-                    <div class="info-value">${distance.toFixed(2)}m</div>
-                </div>
-                <div class="separator"></div>
-                <div class="info-row">
-                    <div class="info-label">Material:</div>
-                    <div class="info-value">${materialName}</div>
-                </div>
-            `;
-
-      // Add color info if available
-      if (materialColor) {
-        const colorHex = "#" + materialColor.getHexString();
-        infoHTML += `
-                    <div class="info-row">
-                        <div class="info-label">Color:</div>
-                        <div class="info-value">
-                            <span style="display:inline-block;width:12px;height:12px;background:${colorHex};border:1px solid #fff;margin-right:5px;vertical-align:middle;"></span>
-                            ${colorHex.toUpperCase()}
-                        </div>
-                    </div>
-                `;
-      }
-
-      // Add position info
-      infoHTML += `
-                <div class="separator"></div>
-                <div class="info-row">
-                    <div class="info-label">Position:</div>
-                    <div class="info-value" style="font-size:11px;">
-                        X: ${point.x.toFixed(1)}<br>
-                        Y: ${point.y.toFixed(1)}<br>
-                        Z: ${point.z.toFixed(1)}
-                    </div>
-                </div>
-            `;
-
-      // Add vertices count if available
-      if (objectHit.geometry?.attributes?.position) {
-        const vertexCount = objectHit.geometry.attributes.position.count;
-        infoHTML += `
-                    <div class="info-row">
-                        <div class="info-label">Vertices:</div>
-                        <div class="info-value">${vertexCount.toLocaleString()}</div>
-                    </div>
-                `;
-      }
-
-      infoContent.innerHTML = infoHTML;
-      updateInfoPanelVisibility();
     } else {
       // Not a batik or too far away
       currentInteractableObject = null;
