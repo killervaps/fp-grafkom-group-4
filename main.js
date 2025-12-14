@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 let camera, scene, renderer, controls;
 let moveForward = false,
@@ -69,11 +70,11 @@ function openCantingModal() {
   isCantingModalOpen = true;
   controls.unlock();
   document.getElementById('canting-modal').style.display = 'flex';
-  
+
   // Reset to page 1 and update display
   currentPage = 1;
   updateCarouselDisplay();
-  
+
   console.log('Canting modal opened!');
 }
 
@@ -86,11 +87,11 @@ function closeCantingModal() {
 
 function selectMotif(motifPath) {
   console.log('Selected motif:', motifPath);
-  
+
   // Hide selection screen, show canvas screen
   document.getElementById('motif-selection').style.display = 'none';
   document.getElementById('canvas-screen').style.display = 'flex';
-  
+
   // Initialize canvas
   initCantingCanvas(motifPath);
 }
@@ -110,48 +111,48 @@ const AI_BACKEND_URL = 'https://us-central1-healthy-spark-458003-h1.cloudfunctio
 
 function initCantingCanvas(motifPath) {
   console.log('🎨 Initializing canvas with motif:', motifPath);
-  
+
   // Reset revealed areas
   revealedAreas = [];
   drawCount = 0;
-  
+
   cantingCanvas = document.getElementById('canting-canvas');
   cantingCtx = cantingCanvas.getContext('2d');
-  
+
   // Set canvas size
   cantingCanvas.width = 600;
   cantingCanvas.height = 600;
-  
+
   console.log('📐 Canvas size set:', cantingCanvas.width, 'x', cantingCanvas.height);
-  
+
   // Load background image
   const bgImage = new Image();
   bgImage.src = motifPath;
-  bgImage.onload = function() {
+  bgImage.onload = function () {
     console.log('✅ Background image loaded successfully!');
-    
+
     // Store the background image for persistent rendering
     cantingCanvas.bgImage = bgImage;
-    
+
     // Draw background
     cantingCtx.drawImage(bgImage, 0, 0, cantingCanvas.width, cantingCanvas.height);
     console.log('🖼️ Background drawn on canvas');
-    
+
     // Save the background state
     const backgroundData = cantingCtx.getImageData(0, 0, cantingCanvas.width, cantingCanvas.height);
     cantingCanvas.backgroundData = backgroundData;
-    
+
     // Cover with white layer
     cantingCtx.fillStyle = 'white';
     cantingCtx.fillRect(0, 0, cantingCanvas.width, cantingCanvas.height);
     console.log('⬜ White layer applied on top');
-    
+
     bgImageLoaded = true;
     console.log('Canvas initialized with motif:', motifPath);
     console.log('👆 Now try dragging your mouse on the canvas to reveal the pattern!');
   };
-  
-  bgImage.onerror = function() {
+
+  bgImage.onerror = function () {
     console.error('❌ Failed to load motif image:', motifPath);
     console.error('Make sure the file exists at:', motifPath);
     // Fallback: just show white canvas
@@ -159,16 +160,16 @@ function initCantingCanvas(motifPath) {
     cantingCtx.fillRect(0, 0, cantingCanvas.width, cantingCanvas.height);
     bgImageLoaded = false;
   };
-  
+
   // Store motif path for finish button
   cantingCanvas.dataset.motifPath = motifPath;
-  
+
   // Setup mouse events
   cantingCanvas.addEventListener('mousedown', startDrawing);
   cantingCanvas.addEventListener('mousemove', draw);
   cantingCanvas.addEventListener('mouseup', stopDrawing);
   cantingCanvas.addEventListener('mouseleave', stopDrawing);
-  
+
   console.log('🖱️ Mouse event listeners attached to canvas');
 }
 
@@ -183,20 +184,20 @@ let revealedAreas = []; // Store areas that have been revealed
 
 function draw(e) {
   if (!isDrawing) return;
-  
+
   const rect = cantingCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  
+
   // Log every 10th draw to avoid spam
   if (drawCount % 10 === 0) {
     console.log('✏️ Drawing at canvas position:', Math.round(x), Math.round(y));
   }
   drawCount++;
-  
+
   // Store revealed area
-  revealedAreas.push({x, y, radius: 60});
-  
+  revealedAreas.push({ x, y, radius: 60 });
+
   // Redraw entire canvas: background first, then white layer with holes
   redrawCanvas();
 }
@@ -206,17 +207,17 @@ function redrawCanvas() {
     console.warn('⚠️ Background image not loaded yet!');
     return;
   }
-  
+
   // Clear canvas
   cantingCtx.clearRect(0, 0, cantingCanvas.width, cantingCanvas.height);
-  
+
   // Step 1: Draw the background pattern
   cantingCtx.drawImage(cantingCanvas.bgImage, 0, 0, cantingCanvas.width, cantingCanvas.height);
-  
+
   // Step 2: Use a mask approach - draw white everywhere EXCEPT where user has drawn
   // Set composite mode to draw white on top
   cantingCtx.globalCompositeOperation = 'source-over';
-  
+
   // Create a temporary canvas for the white mask
   if (!cantingCanvas.maskCanvas) {
     cantingCanvas.maskCanvas = document.createElement('canvas');
@@ -224,14 +225,14 @@ function redrawCanvas() {
     cantingCanvas.maskCanvas.height = cantingCanvas.height;
     cantingCanvas.maskCtx = cantingCanvas.maskCanvas.getContext('2d');
   }
-  
+
   const maskCtx = cantingCanvas.maskCtx;
-  
+
   // Clear mask canvas and fill with white
   maskCtx.clearRect(0, 0, cantingCanvas.width, cantingCanvas.height);
   maskCtx.fillStyle = 'white';
   maskCtx.fillRect(0, 0, cantingCanvas.width, cantingCanvas.height);
-  
+
   // Cut holes in the mask where user has drawn
   maskCtx.globalCompositeOperation = 'destination-out';
   for (let area of revealedAreas) {
@@ -240,10 +241,10 @@ function redrawCanvas() {
     maskCtx.fill();
   }
   maskCtx.globalCompositeOperation = 'source-over';
-  
+
   // Now draw the mask on top of the background
   cantingCtx.drawImage(cantingCanvas.maskCanvas, 0, 0);
-  
+
   // Log only on first few redraws
   if (revealedAreas.length <= 3) {
     console.log('🔄 Canvas redrawn with', revealedAreas.length, 'revealed areas');
@@ -259,17 +260,17 @@ function stopDrawing() {
 
 function finishCanting() {
   const motifPath = cantingCanvas.dataset.motifPath;
-  
+
   if (!cantingObject || !motifPath) {
     console.error('Cannot apply texture: object or motif not found');
     return;
   }
-  
+
   // Load texture and apply to Object_3_4
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
     motifPath,
-    function(texture) {
+    function (texture) {
       // Apply texture to the object with double-sided rendering
       cantingObject.material = new THREE.MeshStandardMaterial({
         map: texture,
@@ -277,18 +278,18 @@ function finishCanting() {
         metalness: 0.1,
         side: THREE.DoubleSide  // Render both front and back
       });
-      
+
       console.log('Texture applied to Object_3_4 (double-sided)!');
-      
+
       // Close modal and return to game
       closeCantingModal();
-      
+
       // Reset canvas screen
       document.getElementById('canvas-screen').style.display = 'none';
       document.getElementById('motif-selection').style.display = 'block';
     },
     undefined,
-    function(error) {
+    function (error) {
       console.error('Failed to load texture:', error);
     }
   );
@@ -298,44 +299,43 @@ function finishCanting() {
 function updateCarouselDisplay() {
   const carousel = document.getElementById('motif-carousel');
   const allItems = carousel.querySelectorAll('.group');
-  
+
   // Hide all items first
   allItems.forEach(item => {
     item.classList.add('hidden');
   });
-  
+
   // Show items for current page
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, allItems.length);
-  
+
   for (let i = startIndex; i < endIndex; i++) {
     allItems[i].classList.remove('hidden');
   }
-  
+
   // Update page indicators
   updatePageIndicators();
-  
+
   // Update button states
   updateNavigationButtons();
-  
+
   console.log(`Carousel: Page ${currentPage}/${totalPages}, showing items ${startIndex + 1}-${endIndex}`);
 }
 
 function updatePageIndicators() {
   const indicatorContainer = document.getElementById('page-indicators');
   if (!indicatorContainer) return;
-  
+
   // Clear existing indicators
   indicatorContainer.innerHTML = '';
-  
+
   // Create indicators for each page with vintage styling
   for (let i = 1; i <= totalPages; i++) {
     const indicator = document.createElement('span');
-    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-      i === currentPage ? 'bg-amber-400 w-8' : 'bg-amber-800/40 hover:bg-amber-700/60'
-    }`;
-    indicator.style.boxShadow = i === currentPage 
-      ? '0 0 8px rgba(251, 191, 36, 0.6)' 
+    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${i === currentPage ? 'bg-amber-400 w-8' : 'bg-amber-800/40 hover:bg-amber-700/60'
+      }`;
+    indicator.style.boxShadow = i === currentPage
+      ? '0 0 8px rgba(251, 191, 36, 0.6)'
       : '0 2px 4px rgba(120, 53, 15, 0.3)';
     indicator.onclick = () => goToPage(i);
     indicatorContainer.appendChild(indicator);
@@ -345,7 +345,7 @@ function updatePageIndicators() {
 function updateNavigationButtons() {
   const prevBtn = document.getElementById('prev-btn');
   const nextBtn = document.getElementById('next-btn');
-  
+
   if (prevBtn) {
     if (currentPage === 1) {
       prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -355,7 +355,7 @@ function updateNavigationButtons() {
       prevBtn.disabled = false;
     }
   }
-  
+
   if (nextBtn) {
     if (currentPage === totalPages) {
       nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -390,12 +390,12 @@ function goToPage(pageNum) {
 
 function createCustomPattern() {
   console.log('Opening custom pattern creator...');
-  
+
   // Hide motif selection, show custom pattern screen
   document.getElementById('motif-selection').style.display = 'none';
   document.getElementById('custom-pattern-screen').classList.remove('hidden');
   document.getElementById('custom-pattern-screen').classList.add('flex');
-  
+
   // Initialize custom canvas
   initCustomCanvas();
 }
@@ -404,37 +404,37 @@ function createCustomPattern() {
 function initCustomCanvas() {
   customCanvas = document.getElementById('custom-canvas');
   customCtx = customCanvas.getContext('2d');
-  
+
   // Set canvas size
   customCanvas.width = 600;
   customCanvas.height = 600;
-  
+
   // Fill with white background
   customCtx.fillStyle = 'white';
   customCtx.fillRect(0, 0, customCanvas.width, customCanvas.height);
-  
+
   // Setup drawing event listeners
   customCanvas.addEventListener('mousedown', startCustomDrawing);
   customCanvas.addEventListener('mousemove', drawCustom);
   customCanvas.addEventListener('mouseup', stopCustomDrawing);
   customCanvas.addEventListener('mouseleave', stopCustomDrawing);
-  
+
   // Setup brush controls
   const colorInput = document.getElementById('brush-color');
   const thicknessInput = document.getElementById('brush-thickness');
   const thicknessValue = document.getElementById('brush-thickness-value');
-  
+
   colorInput.addEventListener('change', (e) => {
     brushColor = e.target.value;
     console.log('Brush color changed to:', brushColor);
   });
-  
+
   thicknessInput.addEventListener('input', (e) => {
     brushThickness = parseInt(e.target.value);
     thicknessValue.textContent = brushThickness;
     console.log('Brush thickness changed to:', brushThickness);
   });
-  
+
   console.log('Custom canvas initialized (600x600)');
 }
 
@@ -443,27 +443,27 @@ function startCustomDrawing(e) {
   const rect = customCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  
+
   // Begin new path
   customCtx.beginPath();
   customCtx.moveTo(x, y);
-  
+
   console.log('✏️ Drawing started at:', Math.round(x), Math.round(y));
 }
 
 function drawCustom(e) {
   if (!isCustomDrawing) return;
-  
+
   const rect = customCanvas.getBoundingClientRect();
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
-  
+
   // Draw line
   customCtx.strokeStyle = brushColor;
   customCtx.lineWidth = brushThickness;
   customCtx.lineCap = 'round';
   customCtx.lineJoin = 'round';
-  
+
   customCtx.lineTo(x, y);
   customCtx.stroke();
 }
@@ -502,10 +502,10 @@ function finishCustomPattern() {
     alert('Error: Objek target tidak ditemukan!');
     return;
   }
-  
+
   // Convert canvas to data URL (base64 image)
   const dataURL = customCanvas.toDataURL('image/png');
-  
+
   applyTextureToObject(dataURL);
 }
 
@@ -513,18 +513,18 @@ function finishCustomPattern() {
 async function enhanceWithAI() {
   const loadingEl = document.getElementById('ai-loading');
   const enhanceBtn = document.getElementById('enhance-btn');
-  
+
   try {
     // Show loading
     loadingEl.classList.remove('hidden');
     enhanceBtn.disabled = true;
     enhanceBtn.innerHTML = '⏳ Memproses...';
-    
+
     console.log('🚀 Memulai AI enhancement...');
-    
+
     // Get canvas data
     const imageBase64 = customCanvas.toDataURL('image/png');
-    
+
     // Send to backend
     const response = await fetch(AI_BACKEND_URL, {
       method: 'POST',
@@ -533,42 +533,42 @@ async function enhanceWithAI() {
       },
       body: JSON.stringify({ imageBase64 })
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       console.error('❌ Backend Error Response:', errorData);
       console.error('❌ Error Details:', errorData.details);
       throw new Error(errorData.error || 'Gagal menghubungi AI backend');
     }
-    
+
     const data = await response.json();
     console.log('📥 Response dari backend:', data);
-    
+
     if (!data.success) {
       console.error('❌ AI Error:', data.error);
       console.error('❌ Error Details:', data.details);
       throw new Error(data.error || 'AI gagal memproses gambar');
     }
-    
+
     console.log('✅ AI enhancement berhasil!');
-    
+
     // Store enhanced image
     enhancedImageData = data.image;
-    
+
     // Show preview screen
     showAIPreview(imageBase64, data.image);
-    
+
   } catch (error) {
     console.error('❌ Error AI enhancement:', error);
-    
+
     let errorMessage = 'Gagal enhance dengan AI: ' + error.message;
-    
+
     if (error.message.includes('Failed to fetch')) {
       errorMessage = 'Tidak dapat terhubung ke server AI. Pastikan backend sudah di-deploy dan URL sudah benar.';
     }
-    
+
     alert(errorMessage);
-    
+
   } finally {
     // Hide loading
     loadingEl.classList.add('hidden');
@@ -581,28 +581,28 @@ function showAIPreview(originalBase64, enhancedBase64) {
   // Hide custom canvas screen
   document.getElementById('custom-pattern-screen').classList.add('hidden');
   document.getElementById('custom-pattern-screen').classList.remove('flex');
-  
+
   // Show preview screen
   const previewScreen = document.getElementById('ai-preview-screen');
   previewScreen.classList.remove('hidden');
   previewScreen.classList.add('flex');
-  
+
   // Show original
   const originalCanvas = document.getElementById('preview-original');
   const originalCtx = originalCanvas.getContext('2d');
   originalCanvas.width = 400;
   originalCanvas.height = 400;
-  
+
   const originalImg = new Image();
-  originalImg.onload = function() {
+  originalImg.onload = function () {
     originalCtx.drawImage(originalImg, 0, 0, 400, 400);
   };
   originalImg.src = originalBase64;
-  
+
   // Show enhanced
   const enhancedImg = document.getElementById('preview-enhanced');
   enhancedImg.src = enhancedBase64;
-  
+
   console.log('👁️ Menampilkan preview perbandingan');
 }
 
@@ -627,12 +627,12 @@ function applyTextureToObject(textureDataURL) {
     alert('Error: Objek target tidak ditemukan!');
     return;
   }
-  
+
   // Load texture and apply to Object_3_4
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(
     textureDataURL,
-    function(texture) {
+    function (texture) {
       // Apply custom texture to the object
       cantingObject.material = new THREE.MeshStandardMaterial({
         map: texture,
@@ -640,24 +640,24 @@ function applyTextureToObject(textureDataURL) {
         metalness: 0.1,
         side: THREE.DoubleSide
       });
-      
+
       console.log('✨ Texture applied to Object_3_4!');
-      
+
       // Close modal and return to game
       closeCantingModal();
-      
+
       // Reset screens
       document.getElementById('custom-pattern-screen').classList.add('hidden');
       document.getElementById('custom-pattern-screen').classList.remove('flex');
       document.getElementById('ai-preview-screen').classList.add('hidden');
       document.getElementById('ai-preview-screen').classList.remove('flex');
       document.getElementById('motif-selection').style.display = 'block';
-      
+
       // Reset enhanced data
       enhancedImageData = null;
     },
     undefined,
-    function(error) {
+    function (error) {
       console.error('Failed to apply texture:', error);
       alert('Error: Gagal menerapkan pola!');
     }
@@ -668,7 +668,7 @@ function backToCustomCanvas() {
   // Hide preview screen
   document.getElementById('ai-preview-screen').classList.add('hidden');
   document.getElementById('ai-preview-screen').classList.remove('flex');
-  
+
   // Show custom canvas screen
   document.getElementById('custom-pattern-screen').classList.remove('hidden');
   document.getElementById('custom-pattern-screen').classList.add('flex');
@@ -711,19 +711,15 @@ function init() {
 
   // 2. Setup Scene
   scene = new THREE.Scene();
-  // scene.background = new THREE.Color(0xcccccc);
+  scene.background = new THREE.Color(0xcccccc);
 
-  // 2.1 Setup Skybox
-  const skyboxLoader = new THREE.CubeTextureLoader();
-  const skyboxTexture = skyboxLoader.load([
-    './assets/skybox/texture_desa.jpg', // right
-    './assets/skybox/texture_desa.jpg', // left
-    './assets/skybox/texture_langit.jpg', // top
-    './assets/skybox/texture_langit.jpg', // bottom
-    './assets/skybox/texture_desa.jpg', // front
-    './assets/skybox/texture_desa.jpg', // back
-  ]);
-  scene.background = skyboxTexture;
+  new EXRLoader()
+    .load('./assets/skybox/citrus_orchard_road_puresky_1k.exr', function (texture) {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+
+      scene.background = texture;
+      scene.environment = texture;
+    });
 
   // 3. Setup Kamera (Standing Position)
   camera = new THREE.PerspectiveCamera(
@@ -875,24 +871,24 @@ function init() {
       model.traverse((child) => {
         if (child.isMesh) {
           const name = child.name.toLowerCase();
-          
+
           // Check the mesh's PARENT name (because paving/lantai are parent groups)
           const parentName = child.parent?.name?.toLowerCase() || '';
-          
+
           // Identify ground objects by checking both mesh name AND parent name
-          if (name.includes('paving') || 
-              name.includes('lantai') || 
-              name.includes('ramp') || 
-              parentName.includes('paving') ||
-              parentName.includes('lantai') ||
-              parentName.includes('ramp')) {
+          if (name.includes('paving') ||
+            name.includes('lantai') ||
+            name.includes('ramp') ||
+            parentName.includes('paving') ||
+            parentName.includes('lantai') ||
+            parentName.includes('ramp')) {
             groundObjects.push(child);
             console.log("Ground object found:", child.name, "| Parent:", child.parent?.name);
           } else {
             // Everything else is a non-ground object
             nonGroundObjects.push(child);
           }
-          
+
           // All objects can still be collided with horizontally
           collidableObjects.push(child);
         }
@@ -908,7 +904,7 @@ function init() {
         if (child.isMesh && child.name === 'Object_3_4') {
           cantingObject = child;
           cantingOriginalMaterial = child.material.clone();
-          
+
           // Make it pure white initially with double-sided rendering
           child.material = new THREE.MeshStandardMaterial({
             color: 0xffffff,
@@ -916,7 +912,7 @@ function init() {
             metalness: 0.1,
             side: THREE.DoubleSide  // Render both front and back
           });
-          
+
           console.log('Virtual Canting: Object_3_4 found and set to white (double-sided)!');
         }
       });
@@ -948,38 +944,38 @@ function init() {
   );
   // Handle Resize Window
   window.addEventListener("resize", onWindowResize);
-  
+
   // Setup Canting Modal Event Listeners (backup for onclick)
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     // Close button
     const closeBtn = document.querySelector('.close-btn');
     if (closeBtn) {
       closeBtn.addEventListener('click', closeCantingModal);
     }
-    
+
     // Motif selection
     const motifCard = document.querySelector('.motif-card');
     if (motifCard) {
-      motifCard.addEventListener('click', function() {
+      motifCard.addEventListener('click', function () {
         selectMotif('./assets/megamendung.jpg');
       });
     }
-    
+
     // Finish button
     const finishBtn = document.querySelector('.finish-btn');
     if (finishBtn) {
       finishBtn.addEventListener('click', finishCanting);
     }
-    
+
     // Back button
     const backBtn = document.querySelector('.back-btn');
     if (backBtn) {
-      backBtn.addEventListener('click', function() {
+      backBtn.addEventListener('click', function () {
         document.getElementById('canvas-screen').style.display = 'none';
         document.getElementById('motif-selection').style.display = 'block';
       });
     }
-    
+
     console.log('Canting modal event listeners attached!');
   });
 }
@@ -993,14 +989,14 @@ function onWindowResize() {
 // Check if object name indicates it's a plane
 function isBatikObject(name, parentName) {
   if (!name && !parentName) return false;
-  
+
   const lowerName = name ? name.toLowerCase() : '';
   const lowerParentName = parentName ? parentName.toLowerCase() : '';
-  
+
   // Check if the object name or parent name contains 'batik'
-  return lowerName.includes("batik") || 
-         lowerParentName.includes("batik") ||
-         lowerParentName.startsWith("batik_");
+  return lowerName.includes("batik") ||
+    lowerParentName.includes("batik") ||
+    lowerParentName.startsWith("batik_");
 }
 
 // Update info panel visibility
@@ -1059,14 +1055,14 @@ function updateRaycaster() {
       // Show interaction prompt
       currentInteractableObject = objectHit;
       isLookingAtCantingObject = isCantingObj;
-      
+
       // Update prompt text based on object type
       if (isCantingObj) {
         interactionPrompt.innerHTML = 'Press <span class="key">E</span> to view info | <span class="key">Q</span> to use Canting';
       } else {
         interactionPrompt.innerHTML = 'Press <span class="key">E</span> to view info';
       }
-      
+
       interactionPrompt.classList.add("visible");
 
       // Build info HTML (will be shown when E is pressed)
@@ -1221,7 +1217,7 @@ function adjustHeightToGround() {
 
   // Check ALL objects first to see what's directly below
   const allIntersections = downRaycaster.intersectObjects(collidableObjects, false);
-  
+
   if (allIntersections.length === 0) {
     // Nothing below at all
     if (frameCount % 30 === 0) {
@@ -1236,7 +1232,7 @@ function adjustHeightToGround() {
 
   // Now check if that closest object is actually ground
   const groundIntersections = downRaycaster.intersectObjects(groundObjects, false);
-  
+
   if (groundIntersections.length === 0) {
     // No ground objects below at all
     if (frameCount % 30 === 0) {
@@ -1325,7 +1321,7 @@ function animate() {
       camera.position.copy(oldPosition);
     } else {
       const hasValidGround = adjustHeightToGround();
-      
+
       // If no valid ground detected, also rollback (prevents walking on objects)
       if (!hasValidGround) {
         camera.position.copy(oldPosition);
