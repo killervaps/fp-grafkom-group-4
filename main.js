@@ -552,8 +552,7 @@ function updateCarouselDisplay() {
   updateNavigationButtons();
 
   console.log(
-    `Carousel: Page ${currentPage}/${totalPages}, showing items ${
-      startIndex + 1
+    `Carousel: Page ${currentPage}/${totalPages}, showing items ${startIndex + 1
     }-${endIndex}`
   );
 }
@@ -568,11 +567,10 @@ function updatePageIndicators() {
   // Create indicators for each page with vintage styling
   for (let i = 1; i <= totalPages; i++) {
     const indicator = document.createElement("span");
-    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-      i === currentPage
-        ? "bg-amber-400 w-8"
-        : "bg-amber-800/40 hover:bg-amber-700/60"
-    }`;
+    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${i === currentPage
+      ? "bg-amber-400 w-8"
+      : "bg-amber-800/40 hover:bg-amber-700/60"
+      }`;
     indicator.style.boxShadow =
       i === currentPage
         ? "0 0 8px rgba(251, 191, 36, 0.6)"
@@ -1204,7 +1202,20 @@ function init() {
       });
 
       model.traverse((child) => {
-        if (child.name === "Object_14" || child.name === "paving") {
+        if (child.name === "Object_14") {
+          const textureLoader = new THREE.TextureLoader();
+          const grassMap = textureLoader.load("./assets/texture_grass.jpg");
+          grassMap.wrapS = THREE.RepeatWrapping;
+          grassMap.wrapT = THREE.RepeatWrapping;
+          grassMap.repeat.set(1, 1);
+          child.material.map = grassMap;
+          child.material.color.setHex(0xffffff);
+          child.material.metalness = 0.0;
+          child.material.roughness = 1.0;
+          child.material.needsUpdate = true;
+          console.log("Tekstur rumput berhasil dipasang via kode!");
+        }
+        if (child.name === "area_terlarang") {
           const textureLoader = new THREE.TextureLoader();
           const grassMap = textureLoader.load("./assets/texture_grass.jpg");
           grassMap.wrapS = THREE.RepeatWrapping;
@@ -1551,9 +1562,9 @@ function adjustHeightToGround() {
     if (frameCount % 30 === 0) {
       console.log(
         `WARNING: Standing on obstacle "${closestObject.object.name}" ` +
-          `(${closestDistance.toFixed(
-            2
-          )}m below), ground is ${groundDistance.toFixed(2)}m below`
+        `(${closestDistance.toFixed(
+          2
+        )}m below), ground is ${groundDistance.toFixed(2)}m below`
       );
     }
     return false;
