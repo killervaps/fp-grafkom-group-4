@@ -100,73 +100,6 @@ function selectMotif(motifPath) {
   initCantingCanvas(motifPath);
 }
 
-// Batik Data Information Database
-const batikDatabase = {
-  "Mega Mendung": {
-    description:
-      'Batik ini memiliki akar sejarah yang kuat dari daerah Yogyakarta dan Solo. Nama "Mega Mendung" sendiri berasal dari awan soga, yang merupakan sumber pewarna alami untuk kain ini.',
-    philosophy: [
-      "Motif parang melambangkan semangat yang terus menerus tanpa pernah mengalami kelelahan.",
-      "Motif kawung menggambarkan umur panjang dan kesucian, menjadi harapan bagi pemakainya untuk selalu diberkahi kesehatan.",
-      "Kemudian ada motif truntum melambangkan cinta yang tulus, abadi, dan terus berkembang, menciptakan ikatan yang kuat antar individu.",
-    ],
-  },
-  "Parang Rusak": {
-    description:
-      "Batik dengan motif parang rusak yang menampilkan pola garis diagonal yang dinamis dan berkelanjutan. Motif ini melambangkan kekuatan dan semangat yang tidak tergoyahkan.",
-    philosophy: [
-      "Motif parang merepresentasikan semangat yang terus berjalan tanpa henti.",
-      "Melambangkan ketahanan dan kekuatan dalam menghadapi tantangan hidup.",
-      "Mencerminkan perjalanan yang panjang namun penuh makna.",
-    ],
-  },
-  Kawung: {
-    description:
-      "Kawung adalah motif batik tradisional yang menampilkan pola bunga yang tersusun rapi. Motif ini berasal dari pohon kawung dan dianggap sebagai lambang kehidupan yang berkelanjutan.",
-    philosophy: [
-      "Motif kawung melambangkan umur panjang dan kesejahteraan.",
-      "Mencerminkan harapan akan kesehatan dan keberuntungan dalam hidup.",
-      "Menggambarkan keseimbangan dan harmoni dalam kehidupan sehari-hari.",
-    ],
-  },
-  Truntum: {
-    description:
-      "Batik Truntum memiliki makna yang dalam tentang pertumbuhan dan perkembangan. Motif bunga yang berkembang melambangkan cinta yang terus tumbuh dan berkembang.",
-    philosophy: [
-      'Truntum berarti "tumbuh" dalam bahasa Jawa, melambangkan pertumbuhan spiritual.',
-      "Motif ini mencerminkan cinta yang abadi dan terus berkembang seiring waktu.",
-      "Melambangkan harapan akan kehidupan yang terus bertumbuh dan berkembang ke arah yang lebih baik.",
-    ],
-  },
-  "Sekar Jagad": {
-    description:
-      "Sekar Jagad adalah batik dengan motif bunga yang indah mewakili keindahan alam semesta. Motif ini menggabungkan berbagai elemen alam dalam satu kesatuan yang harmonis.",
-    philosophy: [
-      'Sekar Jagad berarti "bunga dunia" yang melambangkan keindahan universal.',
-      "Mencerminkan kebijaksanaan dalam melihat keindahan di setiap aspek kehidupan.",
-      "Melambangkan persatuan berbagai elemen menciptakan harmoni yang sempurna.",
-    ],
-  },
-  Sidoluhur: {
-    description:
-      "Batik Sidoluhur adalah motif klasik yang menampilkan pola yang kompleks dan terstruktur dengan baik. Motif ini mencerminkan keanggunan dan kecanggihan dalam desain tradisional.",
-    philosophy: [
-      "Sidoluhur melambangkan kemuliaan dan kehormatan.",
-      "Motif ini mencerminkan struktur sosial dan hirarki yang harmonis.",
-      "Menggambarkan keinginan untuk mencapai kedudukan tertinggi dengan penuh integritas.",
-    ],
-  },
-  Nitik: {
-    description:
-      "Nitik adalah batik dengan motif titik-titik kecil yang tersusun dengan pola yang teratur. Motif ini menampilkan ketelitian dan presisi dalam setiap detail.",
-    philosophy: [
-      'Nitik berarti "titik" yang melambangkan ketelitian dan fokus dalam setiap tindakan.',
-      "Mencerminkan pentingnya memperhatikan detail kecil yang membentuk kesempurnaan.",
-      "Melambangkan kesabaran dan ketekunan dalam mencapai suatu tujuan.",
-    ],
-  },
-};
-
 // Info Panel Display Functions
 function displayBatikInfo(batikName, batikObject) {
   console.log("displayBatikInfo called with:", batikName, batikObject);
@@ -1052,7 +985,6 @@ function init() {
         }
         break;
       case "ShiftLeft":
-      case "ShiftRight":
         isSprinting = true;
         break;
       case "KeyQ":
@@ -1083,7 +1015,6 @@ function init() {
         moveRight = false;
         break;
       case "ShiftLeft":
-      case "ShiftRight":
         isSprinting = false;
         break;
     }
