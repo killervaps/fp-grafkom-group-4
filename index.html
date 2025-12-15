@@ -98,7 +98,6 @@
 
       /* Header Section */
       .info-header {
-        border-bottom: 4px solid rgba(180, 101, 34, 0.5);
         background: linear-gradient(
           to right,
           rgba(139, 69, 19, 0.7),
@@ -110,16 +109,38 @@
         padding: 20px 24px;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
         flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Fade-out effect overlay */
+      .info-header::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: linear-gradient(
+          to left,
+          rgba(120, 53, 15, 0) 0%,
+          rgba(120, 53, 15, 0.98) 70%
+        );
+        pointer-events: none;
+        z-index: 1;
       }
 
       .info-header h2 {
         margin: 0;
-        font-size: 24px;
+        font-size: 48px;
         font-weight: bold;
         color: rgba(255, 245, 230, 0.95);
+        -webkit-text-stroke: 2px rgba(0, 0, 0, 0.4);
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7),
           2px 2px 8px rgba(0, 0, 0, 0.5);
         font-family: serif;
+        position: relative;
+        z-index: 2;
       }
 
       /* Body Section */
@@ -782,7 +803,7 @@
 
               <div
                 class="group cursor-pointer"
-                onclick="selectMotif('./assets/megamendung.jpg')"
+                onclick="selectMotif('./assets/parang.jpg')"
               >
                 <div
                   class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
@@ -792,7 +813,7 @@
                   "
                 >
                   <img
-                    src="./assets/megamendung.jpg"
+                    src="./assets/parang.jpg"
                     alt="Parang Rusak"
                     class="w-full h-32 md:h-40 object-cover"
                   />
@@ -806,7 +827,7 @@
 
               <div
                 class="group cursor-pointer"
-                onclick="selectMotif('./assets/megamendung.jpg')"
+                onclick="selectMotif('./assets/kawung.jpg')"
               >
                 <div
                   class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
@@ -816,7 +837,7 @@
                   "
                 >
                   <img
-                    src="./assets/megamendung.jpg"
+                    src="./assets/kawung.jpg"
                     alt="Kawung"
                     class="w-full h-32 md:h-40 object-cover"
                   />
@@ -830,7 +851,7 @@
 
               <div
                 class="group cursor-pointer"
-                onclick="selectMotif('./assets/megamendung.jpg')"
+                onclick="selectMotif('./assets/truntum.jpg')"
               >
                 <div
                   class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
@@ -840,7 +861,7 @@
                   "
                 >
                   <img
-                    src="./assets/megamendung.jpg"
+                    src="./assets/truntum.jpg"
                     alt="Truntum"
                     class="w-full h-32 md:h-40 object-cover"
                   />
@@ -854,7 +875,7 @@
 
               <div
                 class="group cursor-pointer"
-                onclick="selectMotif('./assets/megamendung.jpg')"
+                onclick="selectMotif('./assets/sekarjagad.jpg')"
               >
                 <div
                   class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
@@ -864,7 +885,7 @@
                   "
                 >
                   <img
-                    src="./assets/megamendung.jpg"
+                    src="./assets/sekarjagad.jpg"
                     alt="Sekar Jagad"
                     class="w-full h-32 md:h-40 object-cover"
                   />
@@ -927,7 +948,7 @@
               <!-- Page 2 Patterns (Hidden by default) -->
               <div
                 class="group cursor-pointer page-2-item hidden"
-                onclick="selectMotif('./assets/megamendung.jpg')"
+                onclick="selectMotif('./assets/sogan.jpg')"
               >
                 <div
                   class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
@@ -937,7 +958,7 @@
                   "
                 >
                   <img
-                    src="./assets/megamendung.jpg"
+                    src="./assets/sogan.jpg"
                     alt="Sogan"
                     class="w-full h-32 md:h-40 object-cover"
                   />
@@ -951,7 +972,7 @@
 
               <div
                 class="group cursor-pointer page-2-item hidden"
-                onclick="selectMotif('./assets/megamendung.jpg')"
+                onclick="selectMotif('./assets/lereng.jpg')"
               >
                 <div
                   class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
@@ -961,7 +982,7 @@
                   "
                 >
                   <img
-                    src="./assets/megamendung.jpg"
+                    src="./assets/lereng.jpg"
                     alt="Lereng"
                     class="w-full h-32 md:h-40 object-cover"
                   />

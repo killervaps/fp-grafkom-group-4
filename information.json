@@ -1,0 +1,85 @@
+{
+  "batik_patterns": [
+    {
+      "name": "Tujuh Rupa",
+      "description": "Merupakan salah satu batik khas dari daerah Pekalongan, Jawa Tengah. Dengan menggabungkan budaya lokal dan budaya Tiongkok yang masuk ke Pekalongan pada abad ke-19, batik Tujuh Rupa semakin menambah keanekaragaman motif batik yang ada di Indonesia.",
+      "philosophy": [
+        "Memiliki makna kefasihan dan kelembutan",
+        "Menggambarkan kehidupan orang pesisir Jawa yang mudah beradaptasi dengan kebudayaan luar",
+        "Gambaran alam dan tambahan ornamen semacam hewan serta tanaman memberikan makna kehidupan yang damai untuk warga sekitar"
+      ]
+    },
+    {
+      "name": "Parang",
+      "description": "Merupakan salah satu batik khas dari budaya Jawa. Kata \"Parang\" berasal dari bahasa Jawa yang berarti \"pedang,\" dan motif ini melambangkan kekuatan serta keberanian.",
+      "philosophy": [
+        "Simbolisme pedang yang menggambarkan kekuatan, keberanian, dan semangat juang",
+        "Pola yang teratur dan berulang pada Batik Parang melambangkan keseimbangan dan harmoni dalam kehidupan",
+        "Desain yang rumit dan kompleks mencerminkan kreativitas dan inovasi"
+      ]
+    },
+    {
+      "name": "Kawung",
+      "description": "Merupakan motif batik yang berasal dari Yogyakarta. Batik Kawung merupakan batik yang bentuknya berupa bulatan mirip buah kawung (sejenis kelapa atau kadang juga dianggap sebagai aren atau kolang-kaling) yang ditata rapi secara geometris.",
+      "philosophy": [
+        "Motif Kawung bermakna kesempurnaan, kemurnian dan kesucian",
+        "Dalam kaitannya dengan kata suwung yang berarti kosong, motif Kawung menyimbolkan kekosongan nafsu dan hasrat duniawi",
+        "Menghasilkan pengendalian diri yang sempurna"
+      ]
+    },
+    {
+      "name": "Betawi",
+      "description": "Merupakan batik yang asalnya dari Betawi. Motif batik Betawi mengikuti gaya batik pesisiran, yakni dari Surabaya, Gresik, Madura, Pekalongan, Banyumas, Cirebon, dan Tegal.",
+      "philosophy": [
+        "Motif dari batik Betawi menggambarkan alam semesta yang indah",
+        "Keseimbangan hidup masyarakat",
+        "Perpaduan budaya lokal dengan pengaruh luar"
+      ]
+    },
+    {
+      "name": "Sekar Jagad",
+      "description": "Batik Sekar Jagad berasal dari kata \"kaart\" (peta, dalam bahasa Belanda) dan \"jagad\" (dunia, dalam bahasa Jawa). Makna harfiahnya adalah gambaran keindahan dari keragaman berbagai jenis suku bangsa di muka bumi ini.",
+      "philosophy": [
+        "Motif geometris dengan cara ceplok atau dipasangkan beririsan dapat dimaknai sebuah keindahan dan keluhuran kehidupan",
+        "Dunia yang penuh dengan ragam perbedaan dan saling berdampingan",
+        "Menggambarkan kesatuan dalam keberagaman"
+      ]
+    },
+    {
+      "name": "Simbut",
+      "description": "Merupakan warisan budaya Indonesia yang berasal dari suku Badui Banten, Jawa Barat. Batik ini mencerminkan kekayaan budaya dan alam yang mengelilingi kehidupan sehari-hari. Motif Batik ini menyerupai daun talas yang disusun rapi yang berasal dari suku Badui peradaban lama.",
+      "philosophy": [
+        "Terinspirasi dari alam sekitar, khususnya daun-daun yang indah",
+        "Motif Simbut Uteri bergambar 'uteri' sebagai simbol perempuan dengan makna kelembutan namun tetap optimis",
+        "Mencerminkan keseimbangan antara kelemahan lembut dan ketangguhan dalam meraih cita-cita"
+      ]
+    },
+    {
+      "name": "Sidokmuti",
+      "description": "Motif batik Sidokmuti lahir di lingkungan keraton Jawa, khususnya dari Keraton Surakarta di Solo, Jawa Tengah. Batik Sido Mukti merupakan pengembangan dari motif batik Sidomulyo yang pertama kali muncul pada masa Kesultanan Mataram.",
+      "philosophy": [
+        "Memiliki makna harapan agar seseorang mendapat kebahagiaan dan kesejahteraan dalam hidupnya",
+        "Bunga melambangkan kehidupan, kecantikan, kesuburan, pertumbuhan dan kemakmuran; Kupu-kupu menjadi simbol metamorfosis dan perjalanan menuju pencerahan; Garuda adalah simbol kegagahan, kewibawaan, kemuliaan dan kehormatan",
+        "Kombinasi motif menciptakan harmoni sempurna antara keindahan, kekuatan, dan transformasi"
+      ]
+    },
+    {
+      "name": "Sogan",
+      "description": "Batik Sogan memiliki akar sejarah yang kuat dari daerah Yogyakarta dan Solo. Nama \"Sogan\" sendiri berasal dari pohon soga, yang merupakan sumber pewarna alami untuk kain ini. Pewarna yang dihasilkan dari kulit pohon soga memberikan warna cokelat yang khas, serta memiliki daya tahan yang baik.",
+      "philosophy": [
+        "Motif Parang melambangkan semangat yang terus menerus tanpa pernah padam, mencerminkan daya juang dan ketahanan",
+        "Motif Kawung menggambarkan umur panjang dan kesucian, yang menjadi harapan bagi pemakainya untuk selalu diberikan kesehatan dan kebersihan jiwa",
+        "Motif Truntum melambangkan cinta yang tulus, abadi, dan terus berkembang, menciptakan ikatan yang kuat antara individu"
+      ]
+    },
+    {
+      "name": "Lereng",
+      "description": "Batik Lereng adalah salah satu jenis batik dengan pola diagonal. Motif jenis ini pada jaman dahulu hanya digunakan oleh sentono dalem (anak dari Ratu).",
+      "philosophy": [
+        "Motif ini berarti topo broto para raja yang dilakukan di lereng-lereng pegunungan untuk mendapatkan wahyu atau wangsit",
+        "Garis diagonal dalam motif batik menggambarkan bahwa manusia harus memiliki cita-cita yang luhur",
+        "Kokoh dalam pendirian dan setia pada nilai kebenaran"
+      ]
+    }
+  ]
+}
