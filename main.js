@@ -41,7 +41,8 @@ let appliedBatikOnCanting = null; // Track which batik pattern is applied to Obj
 
 // Motif to Batik Name Mapping
 const motifToBatikMap = {
-  "./assets/megamendung.jpg": "Tujuh Rupa",
+  "./assets/megamendung.jpg": "Mega Mendung",
+  "./assets/tujuhrupa.jpg": "Tujuh Rupa",
   "./assets/parang.jpg": "Parang",
   "./assets/kawung.jpg": "Kawung",
   "./assets/betawi.jpg": "Betawi",
@@ -49,7 +50,7 @@ const motifToBatikMap = {
   "./assets/simbut.jpg": "Simbut",
   "./assets/sidokmuti.jpg": "Sidokmuti",
   "./assets/sogan.jpg": "Sogan",
-  "./assets/lereng.jpg": "Lereng"
+  "./assets/lereng.jpg": "Lereng",
 };
 
 // Carousel System
@@ -544,7 +545,10 @@ function finishCanting() {
 
       // Track which batik pattern was applied
       appliedBatikOnCanting = motifToBatikMap[motifPath] || null;
-      console.log("Texture applied to Object_3_4! Applied batik:", appliedBatikOnCanting);
+      console.log(
+        "Texture applied to Object_3_4! Applied batik:",
+        appliedBatikOnCanting
+      );
 
       // Close modal and return to game
       closeCantingModal();
