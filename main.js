@@ -3,6 +3,26 @@ import { PointerLockControls } from "three/addons/controls/PointerLockControls.j
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
+// Batik Database - Will be replaced with JSON data later
+const batikDatabase = {
+  "Tujuh Rupa": {
+    description:
+      "Batik dengan tujuh motif berbeda yang melambangkan keberagaman budaya Indonesia.",
+    philosophy: ["Keberagaman", "Harmoni", "Kekayaan warisan budaya"],
+  },
+  Kawung: {
+    description:
+      "Motif klasik yang terinspirasi dari buah kolang-kaling dengan makna kemakmuran.",
+    philosophy: ["Kemakmuran", "Kesejahteraan", "Hasil bumi yang melimpah"],
+  },
+  "Mega Mendung": {
+    description:
+      "Motif awan yang bergerak melambangkan perubahan dan fleksibilitas.",
+    philosophy: ["Perubahan", "Fleksibilitas", "Dinamika hidup"],
+  },
+  // Add more batik patterns here with their data
+};
+
 let camera, scene, renderer, controls;
 let previewCamera; // Kamera khusus untuk intro screen
 let isGameActive = false; // Status apakah user sudah klik play
@@ -25,6 +45,9 @@ const centerScreen = new THREE.Vector2(0, 0); // Koordinat tengah layar (selalu 
 let loadedModel = null; // Wadah untuk model agar bisa diakses di animate()
 const infoPanel = document.getElementById("info-panel");
 const interactionPrompt = document.getElementById("interaction-prompt");
+
+// Batik detection variables
+let currentBatikName = null; // Store userData.name of current batik object
 
 // Virtual Canting System
 let cantingObject = null; // Reference to Object_3_4
@@ -111,7 +134,7 @@ function displayBatikInfo(batikName, batikObject) {
   console.log("Batik info found:", batikInfo);
 
   // Update header
-  document.getElementById("batik-title").textContent = batikName;
+  document.getElementById("batik-title").textContent = "Batik " + batikName;
 
   // Update preview image with object's material
   const previewImg = document.getElementById("batik-preview");
@@ -968,20 +991,14 @@ function init() {
         break;
       case "KeyE":
         // Display batik info panel when E is pressed
-        console.log(
-          "E pressed - currentInteractableObject:",
-          currentInteractableObject,
-          "isLocked:",
-          controls.isLocked
-        );
-        if (currentInteractableObject && controls.isLocked) {
-          const batikName = currentInteractableObject.name || "Batik";
-          console.log("Opening info panel for:", batikName);
-          // Extract batik name from object name (e.g., "batik_Mega Mendung" -> "Mega Mendung")
-          const cleanName = batikName.replace(/^batik_/i, "");
-          console.log("Clean name:", cleanName);
-          // Pass the actual object so we can render its material
-          displayBatikInfo(cleanName, currentInteractableObject);
+        if (
+          currentInteractableObject &&
+          controls.isLocked &&
+          currentBatikName
+        ) {
+          console.log("Opening info panel for:", currentBatikName);
+          // Pass the batik name from userData and the actual object for material rendering
+          displayBatikInfo(currentBatikName, currentInteractableObject);
         }
         break;
       case "ShiftLeft":
@@ -1219,18 +1236,18 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// Check if object name indicates it's a plane
-function isBatikObject(name, parentName) {
-  if (!name && !parentName) return false;
+// Check if object name indicates it's a batik object_batik_* with userData
+function isBatikObject(name, userData) {
+  if (!name) return false;
 
-  const lowerName = name ? name.toLowerCase() : "";
-  const lowerParentName = parentName ? parentName.toLowerCase() : "";
+  const lowerName = name.toLowerCase();
 
-  // Check if the object name or parent name contains 'batik'
+  // Check if object name starts with 'object_batik_' and has userData with name property
   return (
-    lowerName.includes("batik") ||
-    lowerParentName.includes("batik") ||
-    lowerParentName.startsWith("batik_")
+    lowerName.startsWith("object_batik_") &&
+    userData &&
+    userData.name &&
+    typeof userData.name === "string"
   );
 }
 
@@ -1275,15 +1292,16 @@ function updateRaycaster() {
     // Check if it's a plane/mesh
     const geometryType = objectHit.geometry?.type || "Unknown";
 
-    // Get object name
+    // Get object name and userData
     const displayName = objectHit.name || "Unnamed Object";
+    const objectUserData = objectHit.userData || {};
     const parentName = objectHit.parent?.name || "";
 
     // Check if this is Object_3_4 (Canting object)
     const isCantingObj = displayName === "Object_3_4";
 
-    // Check if this is a plane and within interaction distance
-    const isBatik = isBatikObject(displayName, parentName);
+    // Check if this is a batik object (object_batik_* with userData.name) and within interaction distance
+    const isBatik = isBatikObject(displayName, objectUserData);
     const canInteract =
       (isBatik || isCantingObj) && distance <= INTERACTION_DISTANCE;
 
@@ -1291,12 +1309,14 @@ function updateRaycaster() {
       // Show interaction prompt only if info panel is not already open
       currentInteractableObject = objectHit;
       isLookingAtCantingObject = isCantingObj;
+      // Store batik name from userData for E-key handler
+      currentBatikName = isBatik ? objectUserData.name : null;
 
       // Update prompt text based on object type
       if (isCantingObj) {
         interactionPrompt.innerHTML =
           'Press <span class="key">E</span> to view info | <span class="key">Q</span> to use Canting';
-      } else {
+      } else if (isBatik) {
         interactionPrompt.innerHTML =
           'Press <span class="key">E</span> to view info';
       }
@@ -1360,6 +1380,7 @@ function updateRaycaster() {
     } else {
       // Not a batik or too far away
       currentInteractableObject = null;
+      currentBatikName = null;
       isInfoPanelOpen = false;
       isLookingAtCantingObject = false;
       interactionPrompt.classList.remove("visible");
@@ -1386,6 +1407,7 @@ function updateRaycaster() {
   } else {
     // Jika tidak melihat apa-apa (lihat langit/kosong)
     currentInteractableObject = null;
+    currentBatikName = null;
     isInfoPanelOpen = false;
     isLookingAtCantingObject = false;
     interactionPrompt.classList.remove("visible");
