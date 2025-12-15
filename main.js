@@ -971,7 +971,8 @@ function init() {
     0.1,
     2000
   );
-  camera.position.set(-23.427, 19.0, 49.81);
+  // camera.position.set(-23.427, 19.0, 49.81); // koordinat saat scene glb (1.381,6.098,1.237) (dari scene_old.glb) (algof simpen)
+  camera.position.set(-24.808, 12.902, 48.573); // koordinat saat sceneglb (0,0,0) (dari scene.glb saat ini)
 
   // Make camera look DOWN towards the model center
   camera.rotation.x = -0.3; // Tilt down about 17 degrees
@@ -1209,7 +1210,7 @@ function init() {
           const grassMap = textureLoader.load("./assets/texture_grass.jpg");
           grassMap.wrapS = THREE.RepeatWrapping;
           grassMap.wrapT = THREE.RepeatWrapping;
-          grassMap.repeat.set(1, 1);
+          grassMap.repeat.set(10, 10);
           child.material.map = grassMap;
           child.material.color.setHex(0xffffff);
           child.material.metalness = 0.0;
@@ -1222,7 +1223,7 @@ function init() {
           const grassMap = textureLoader.load("./assets/texture_grass.jpg");
           grassMap.wrapS = THREE.RepeatWrapping;
           grassMap.wrapT = THREE.RepeatWrapping;
-          grassMap.repeat.set(10, 10);
+          grassMap.repeat.set(100, 100);
           child.material.map = grassMap;
           child.material.color.setHex(0xffffff);
           child.material.metalness = 0.0;
