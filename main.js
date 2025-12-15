@@ -37,6 +37,20 @@ let cantingObject = null; // Reference to Object_3_4
 let cantingOriginalMaterial = null; // Store original material
 let isCantingModalOpen = false; // Track modal state
 let isLookingAtCantingObject = false; // Track if player is looking at Object_3_4
+let appliedBatikOnCanting = null; // Track which batik pattern is applied to Object_3_4
+
+// Motif to Batik Name Mapping
+const motifToBatikMap = {
+  "./assets/megamendung.jpg": "Tujuh Rupa",
+  "./assets/parang.jpg": "Parang",
+  "./assets/kawung.jpg": "Kawung",
+  "./assets/betawi.jpg": "Betawi",
+  "./assets/sekar-jagad.jpg": "Sekar Jagad",
+  "./assets/simbut.jpg": "Simbut",
+  "./assets/sidokmuti.jpg": "Sidokmuti",
+  "./assets/sogan.jpg": "Sogan",
+  "./assets/lereng.jpg": "Lereng"
+};
 
 // Carousel System
 let currentPage = 1;
@@ -224,7 +238,9 @@ function applyMaterialToHeader(materialDataUrl) {
     header.style.backgroundImage = `url(${materialDataUrl})`;
     header.style.backgroundSize = "cover";
     header.style.backgroundPosition = "center";
-    console.log("✅ Material applied to header background");
+    console.log("Material applied to header background");
+  } else {
+    console.warn("Header element or materialDataUrl not found");
   }
 }
 
@@ -234,6 +250,82 @@ function closeInfoPanel() {
   controls.lock(); // Lock to hide cursor and resume the game
   isInfoPanelOpen = false;
   console.log("Info panel closed. Controls locked.");
+}
+
+// Display info panel for Object_3_4 (Canting/Tool)
+function displayCantingObjectInfo() {
+  // Check if a batik from the carousel has been applied
+  if (appliedBatikOnCanting && batikDatabase[appliedBatikOnCanting]) {
+    // Display the applied batik's information instead
+    displayBatikInfo(appliedBatikOnCanting, cantingObject);
+    return;
+  }
+
+  // Otherwise, show canting tool info
+  // Update header
+  document.getElementById("batik-title").textContent = "🎨 Alat Canting";
+
+  // Get the preview image element
+  const previewImg = document.getElementById("batik-preview");
+
+  // Render Object_3_4's current material to the preview
+  if (cantingObject && cantingObject.material) {
+    renderMaterialToPreview(cantingObject, previewImg);
+  } else {
+    // Fallback: create a canvas with a tool-like preview
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    const ctx = canvas.getContext("2d");
+
+    // Draw a gradient background representing the canting tool
+    const gradient = ctx.createLinearGradient(0, 0, 220, 220);
+    gradient.addColorStop(0, "#D4A574");
+    gradient.addColorStop(1, "#8B4513");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 220, 220);
+
+    // Add some decorative elements
+    ctx.fillStyle = "#E8D4C0";
+    ctx.beginPath();
+    ctx.arc(110, 110, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#8B4513";
+    ctx.font = "bold 48px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🎨", 110, 110);
+
+    previewImg.src = canvas.toDataURL();
+  }
+
+  // Update description
+  document.getElementById("batik-description").textContent =
+    "Alat tradisional untuk membuat batik dengan melapisi kain menggunakan lilin cair. Gunakan untuk menggambar pola batik custom di atas kain putih.";
+
+  // Update philosophy
+  const philosophyList = document.getElementById("batik-philosophy");
+  philosophyList.innerHTML = "";
+
+  const philosophyPoints = [
+    "Alat untuk mengekspresikan kreativitas dan seni tradisional",
+    "Memberdayakan pengrajin untuk menciptakan pola unik dan personal",
+    "Menghubungkan tradisi batik dengan inovasi modern",
+  ];
+
+  philosophyPoints.forEach((point) => {
+    const li = document.createElement("li");
+    li.textContent = point;
+    philosophyList.appendChild(li);
+  });
+
+  // Show panel
+  const infoPanel = document.getElementById("info-panel");
+  infoPanel.classList.remove("hidden");
+  controls.unlock(); // Unlock to show cursor and pause the game
+  console.log("Canting tool info panel shown.");
+  isInfoPanelOpen = true;
 }
 
 let cantingCanvas,
@@ -450,7 +542,9 @@ function finishCanting() {
         side: THREE.DoubleSide, // Render both front and back
       });
 
-      console.log("Texture applied to Object_3_4 (double-sided)!");
+      // Track which batik pattern was applied
+      appliedBatikOnCanting = motifToBatikMap[motifPath] || null;
+      console.log("Texture applied to Object_3_4! Applied batik:", appliedBatikOnCanting);
 
       // Close modal and return to game
       closeCantingModal();
@@ -819,7 +913,9 @@ function applyTextureToObject(textureDataURL) {
         side: THREE.DoubleSide,
       });
 
-      console.log("✨ Texture applied to Object_3_4!");
+      // For custom patterns, mark as null (not from the predefined batik list)
+      appliedBatikOnCanting = null;
+      console.log("✨ Texture applied to Object_3_4! (Custom pattern)");
 
       // Close modal and return to game
       closeCantingModal();
@@ -870,6 +966,7 @@ window.selectOriginalPattern = selectOriginalPattern;
 window.selectEnhancedPattern = selectEnhancedPattern;
 window.backToCustomCanvas = backToCustomCanvas;
 window.displayBatikInfo = displayBatikInfo;
+window.displayCantingObjectInfo = displayCantingObjectInfo;
 window.closeInfoPanel = closeInfoPanel;
 
 console.log("Canting functions exposed to window:", {
@@ -996,15 +1093,15 @@ function init() {
         moveRight = true;
         break;
       case "KeyE":
-        // Display batik info panel when E is pressed
-        if (
-          currentInteractableObject &&
-          controls.isLocked &&
-          currentBatikName
-        ) {
-          console.log("Opening info panel for:", currentBatikName);
-          // Pass the batik name from userData and the actual object for material rendering
-          displayBatikInfo(currentBatikName, currentInteractableObject);
+        // Display info panel when E is pressed
+        if (currentInteractableObject && controls.isLocked) {
+          // Check if it's the Canting object
+          if (currentInteractableObject.name === "Object_3_4") {
+            displayCantingObjectInfo();
+          } else if (currentBatikName) {
+            // Display batik info if it's a batik object
+            displayBatikInfo(currentBatikName, currentInteractableObject);
+          }
         }
         break;
       case "ShiftLeft":
