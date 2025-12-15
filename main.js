@@ -3,25 +3,8 @@ import { PointerLockControls } from "three/addons/controls/PointerLockControls.j
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
-// Batik Database - Will be replaced with JSON data later
-const batikDatabase = {
-  "Tujuh Rupa": {
-    description:
-      "Batik dengan tujuh motif berbeda yang melambangkan keberagaman budaya Indonesia.",
-    philosophy: ["Keberagaman", "Harmoni", "Kekayaan warisan budaya"],
-  },
-  Kawung: {
-    description:
-      "Motif klasik yang terinspirasi dari buah kolang-kaling dengan makna kemakmuran.",
-    philosophy: ["Kemakmuran", "Kesejahteraan", "Hasil bumi yang melimpah"],
-  },
-  "Mega Mendung": {
-    description:
-      "Motif awan yang bergerak melambangkan perubahan dan fleksibilitas.",
-    philosophy: ["Perubahan", "Fleksibilitas", "Dinamika hidup"],
-  },
-  // Add more batik patterns here with their data
-};
+// Batik Database - Will be loaded from JSON file
+let batikDatabase = {};
 
 let camera, scene, renderer, controls;
 let previewCamera; // Kamera khusus untuk intro screen
@@ -896,8 +879,31 @@ console.log("Canting functions exposed to window:", {
   finishCanting: typeof window.finishCanting,
 });
 
-init();
-animate();
+// Load batik data from JSON file
+async function loadBatikData() {
+  try {
+    const response = await fetch("./information.json");
+    const data = await response.json();
+
+    // Convert array to object keyed by name for easy lookup
+    data.batik_patterns.forEach((pattern) => {
+      batikDatabase[pattern.name] = {
+        description: pattern.description,
+        philosophy: pattern.philosophy,
+      };
+    });
+
+    console.log("Batik data loaded successfully:", batikDatabase);
+  } catch (error) {
+    console.error("Error loading batik data from information.json:", error);
+  }
+}
+
+// Load data then start
+loadBatikData().then(() => {
+  init();
+  animate();
+});
 
 function init() {
   // 1. Setup Renderer
