@@ -1,6 +1,10 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
+
+// Batik Database - Will be loaded from JSON file
+let batikDatabase = {};
 
 let camera, scene, renderer, controls;
 let previewCamera; // Kamera khusus untuk intro screen
@@ -12,7 +16,9 @@ let moveForward = false,
   moveRight = false;
 let velocity = new THREE.Vector3();
 let direction = new THREE.Vector3();
-const moveSpeed = 400.0;
+const moveSpeed = 200.0;
+const sprintMultiplier = 2.0; // Sprint makes you move 2x faster
+let isSprinting = false;
 let prevTime = performance.now();
 let frameCount = 0;
 let logInterval = 0;
@@ -21,14 +27,36 @@ const raycaster = new THREE.Raycaster();
 const centerScreen = new THREE.Vector2(0, 0); // Koordinat tengah layar (selalu 0,0)
 let loadedModel = null; // Wadah untuk model agar bisa diakses di animate()
 const infoPanel = document.getElementById("info-panel");
-const infoContent = document.getElementById("info-content");
 const interactionPrompt = document.getElementById("interaction-prompt");
+
+// Batik detection variables
+let currentBatikName = null; // Store userData.name of current batik object
 
 // Virtual Canting System
 let cantingObject = null; // Reference to Object_3_4
 let cantingOriginalMaterial = null; // Store original material
 let isCantingModalOpen = false; // Track modal state
 let isLookingAtCantingObject = false; // Track if player is looking at Object_3_4
+let appliedBatikOnCanting = null; // Track which batik pattern is applied to Object_3_4
+
+// Motif to Batik Name Mapping
+const motifToBatikMap = {
+  "./assets/megamendung.jpg": "Mega Mendung",
+  "./assets/tujuhrupa.jpg": "Tujuh Rupa",
+  "./assets/parang.jpg": "Parang",
+  "./assets/kawung.jpg": "Kawung",
+  "./assets/betawi.jpg": "Betawi",
+  "./assets/sekar-jagad.jpg": "Sekar Jagad",
+  "./assets/simbut.jpg": "Simbut",
+  "./assets/sidokmuti.jpg": "Sidokmuti",
+  "./assets/sogan.jpg": "Sogan",
+  "./assets/lereng.jpg": "Lereng",
+};
+
+// Carousel System
+let currentPage = 1;
+let totalPages = 2; // We have 2 pages (8 items on page 1, 5 items on page 2)
+const itemsPerPage = 8;
 
 // Carousel System
 let currentPage = 1;
@@ -96,6 +124,214 @@ function selectMotif(motifPath) {
 
   // Initialize canvas
   initCantingCanvas(motifPath);
+}
+
+// Info Panel Display Functions
+function displayBatikInfo(batikName, batikObject) {
+  console.log("displayBatikInfo called with:", batikName, batikObject);
+  const batikInfo = batikDatabase[batikName] || {
+    description: "Deskripsi batik tidak tersedia.",
+    philosophy: ["Filosofi batik tidak tersedia."],
+  };
+
+  console.log("Batik info found:", batikInfo);
+
+  // Update header
+  document.getElementById("batik-title").textContent = "Batik " + batikName;
+
+  // Update preview image with object's material
+  const previewImg = document.getElementById("batik-preview");
+  previewImg.alt = batikName;
+
+  // Render the object's material to the preview
+  if (batikObject && batikObject.material) {
+    renderMaterialToPreview(batikObject, previewImg);
+  } else {
+    // Fallback: create a solid color preview
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#8B4513";
+    ctx.fillRect(0, 0, 220, 220);
+    previewImg.src = canvas.toDataURL();
+  }
+
+  // Update description
+  document.getElementById("batik-description").textContent =
+    batikInfo.description;
+
+  // Update philosophy
+  const philosophyList = document.getElementById("batik-philosophy");
+  philosophyList.innerHTML = "";
+
+  const philosophyArray = Array.isArray(batikInfo.philosophy)
+    ? batikInfo.philosophy
+    : [batikInfo.philosophy];
+
+  philosophyArray.forEach((point) => {
+    const li = document.createElement("li");
+    li.textContent = point;
+    philosophyList.appendChild(li);
+  });
+
+  // Show panel
+  const infoPanel = document.getElementById("info-panel");
+  console.log("Info panel element:", infoPanel);
+  infoPanel.classList.remove("hidden");
+  controls.unlock(); // Unlock to show cursor and pause the game
+  console.log("Info panel shown. Controls unlocked.");
+  isInfoPanelOpen = true;
+}
+
+// Helper function to render material/texture to preview image and header
+function renderMaterialToPreview(object, imgElement) {
+  const material = object.material;
+  let materialDataUrl = null;
+
+  // If material has a texture map, use it
+  if (material && material.map && material.map.source) {
+    // Get the texture from the material
+    const texture = material.map;
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    const ctx = canvas.getContext("2d");
+
+    // Try to get the image from the texture
+    try {
+      const textureImage = texture.source.data;
+      if (textureImage) {
+        ctx.drawImage(textureImage, 0, 0, 220, 220);
+        materialDataUrl = canvas.toDataURL();
+        imgElement.src = materialDataUrl;
+        console.log("✅ Material texture rendered to preview");
+        applyMaterialToHeader(materialDataUrl);
+        return;
+      }
+    } catch (e) {
+      console.warn("Could not render texture:", e);
+    }
+  }
+
+  // Fallback: render based on material color
+  const canvas = document.createElement("canvas");
+  canvas.width = 220;
+  canvas.height = 220;
+  const ctx = canvas.getContext("2d");
+
+  if (material && material.color) {
+    // Get material color as hex
+    const color = material.color;
+    const hexColor = "#" + color.getHexString().padStart(6, "0").toUpperCase();
+    ctx.fillStyle = hexColor;
+  } else {
+    // Default color
+    ctx.fillStyle = "#8B4513";
+  }
+
+  ctx.fillRect(0, 0, 220, 220);
+  materialDataUrl = canvas.toDataURL();
+  imgElement.src = materialDataUrl;
+  console.log("📋 Material color preview rendered");
+  applyMaterialToHeader(materialDataUrl);
+}
+
+// Helper function to apply material texture to header background
+function applyMaterialToHeader(materialDataUrl) {
+  const header = document.querySelector(".info-header");
+  if (header && materialDataUrl) {
+    header.style.backgroundImage = `url(${materialDataUrl})`;
+    header.style.backgroundSize = "cover";
+    header.style.backgroundPosition = "center";
+    console.log("Material applied to header background");
+  } else {
+    console.warn("Header element or materialDataUrl not found");
+  }
+}
+
+function closeInfoPanel() {
+  const infoPanel = document.getElementById("info-panel");
+  infoPanel.classList.add("hidden");
+  controls.lock(); // Lock to hide cursor and resume the game
+  isInfoPanelOpen = false;
+  console.log("Info panel closed. Controls locked.");
+}
+
+// Display info panel for Object_3_4 (Canting/Tool)
+function displayCantingObjectInfo() {
+  // Check if a batik from the carousel has been applied
+  if (appliedBatikOnCanting && batikDatabase[appliedBatikOnCanting]) {
+    // Display the applied batik's information instead
+    displayBatikInfo(appliedBatikOnCanting, cantingObject);
+    return;
+  }
+
+  // Otherwise, show canting tool info
+  // Update header
+  document.getElementById("batik-title").textContent = "🎨 Alat Canting";
+
+  // Get the preview image element
+  const previewImg = document.getElementById("batik-preview");
+
+  // Render Object_3_4's current material to the preview
+  if (cantingObject && cantingObject.material) {
+    renderMaterialToPreview(cantingObject, previewImg);
+  } else {
+    // Fallback: create a canvas with a tool-like preview
+    const canvas = document.createElement("canvas");
+    canvas.width = 220;
+    canvas.height = 220;
+    const ctx = canvas.getContext("2d");
+
+    // Draw a gradient background representing the canting tool
+    const gradient = ctx.createLinearGradient(0, 0, 220, 220);
+    gradient.addColorStop(0, "#D4A574");
+    gradient.addColorStop(1, "#8B4513");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 220, 220);
+
+    // Add some decorative elements
+    ctx.fillStyle = "#E8D4C0";
+    ctx.beginPath();
+    ctx.arc(110, 110, 50, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#8B4513";
+    ctx.font = "bold 48px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🎨", 110, 110);
+
+    previewImg.src = canvas.toDataURL();
+  }
+
+  // Update description
+  document.getElementById("batik-description").textContent =
+    "Alat tradisional untuk membuat batik dengan melapisi kain menggunakan lilin cair. Gunakan untuk menggambar pola batik custom di atas kain putih.";
+
+  // Update philosophy
+  const philosophyList = document.getElementById("batik-philosophy");
+  philosophyList.innerHTML = "";
+
+  const philosophyPoints = [
+    "Alat untuk mengekspresikan kreativitas dan seni tradisional",
+    "Memberdayakan pengrajin untuk menciptakan pola unik dan personal",
+    "Menghubungkan tradisi batik dengan inovasi modern",
+  ];
+
+  philosophyPoints.forEach((point) => {
+    const li = document.createElement("li");
+    li.textContent = point;
+    philosophyList.appendChild(li);
+  });
+
+  // Show panel
+  const infoPanel = document.getElementById("info-panel");
+  infoPanel.classList.remove("hidden");
+  controls.unlock(); // Unlock to show cursor and pause the game
+  console.log("Canting tool info panel shown.");
+  isInfoPanelOpen = true;
 }
 
 let cantingCanvas,
@@ -312,7 +548,12 @@ function finishCanting() {
         side: THREE.DoubleSide, // Render both front and back
       });
 
-      console.log("Texture applied to Object_3_4 (double-sided)!");
+      // Track which batik pattern was applied
+      appliedBatikOnCanting = motifToBatikMap[motifPath] || null;
+      console.log(
+        "Texture applied to Object_3_4! Applied batik:",
+        appliedBatikOnCanting
+      );
 
       // Close modal and return to game
       closeCantingModal();
@@ -353,8 +594,7 @@ function updateCarouselDisplay() {
   updateNavigationButtons();
 
   console.log(
-    `Carousel: Page ${currentPage}/${totalPages}, showing items ${
-      startIndex + 1
+    `Carousel: Page ${currentPage}/${totalPages}, showing items ${startIndex + 1
     }-${endIndex}`
   );
 }
@@ -369,11 +609,10 @@ function updatePageIndicators() {
   // Create indicators for each page with vintage styling
   for (let i = 1; i <= totalPages; i++) {
     const indicator = document.createElement("span");
-    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-      i === currentPage
-        ? "bg-amber-400 w-8"
-        : "bg-amber-800/40 hover:bg-amber-700/60"
-    }`;
+    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${i === currentPage
+      ? "bg-amber-400 w-8"
+      : "bg-amber-800/40 hover:bg-amber-700/60"
+      }`;
     indicator.style.boxShadow =
       i === currentPage
         ? "0 0 8px rgba(251, 191, 36, 0.6)"
@@ -681,7 +920,9 @@ function applyTextureToObject(textureDataURL) {
         side: THREE.DoubleSide,
       });
 
-      console.log("✨ Texture applied to Object_3_4!");
+      // For custom patterns, mark as null (not from the predefined batik list)
+      appliedBatikOnCanting = null;
+      console.log("✨ Texture applied to Object_3_4! (Custom pattern)");
 
       // Close modal and return to game
       closeCantingModal();
@@ -731,6 +972,9 @@ window.enhanceWithAI = enhanceWithAI;
 window.selectOriginalPattern = selectOriginalPattern;
 window.selectEnhancedPattern = selectEnhancedPattern;
 window.backToCustomCanvas = backToCustomCanvas;
+window.displayBatikInfo = displayBatikInfo;
+window.displayCantingObjectInfo = displayCantingObjectInfo;
+window.closeInfoPanel = closeInfoPanel;
 
 console.log("Canting functions exposed to window:", {
   openCantingModal: typeof window.openCantingModal,
@@ -739,8 +983,31 @@ console.log("Canting functions exposed to window:", {
   finishCanting: typeof window.finishCanting,
 });
 
-init();
-animate();
+// Load batik data from JSON file
+async function loadBatikData() {
+  try {
+    const response = await fetch("./information.json");
+    const data = await response.json();
+
+    // Convert array to object keyed by name for easy lookup
+    data.batik_patterns.forEach((pattern) => {
+      batikDatabase[pattern.name] = {
+        description: pattern.description,
+        philosophy: pattern.philosophy,
+      };
+    });
+
+    console.log("Batik data loaded successfully:", batikDatabase);
+  } catch (error) {
+    console.error("Error loading batik data from information.json:", error);
+  }
+}
+
+// Load data then start
+loadBatikData().then(() => {
+  init();
+  animate();
+});
 
 // Ganti seluruh function init() yang lama dengan yang ini:
 
@@ -753,19 +1020,17 @@ function init() {
 
   // 2. Setup Scene
   scene = new THREE.Scene();
-  // scene.background = new THREE.Color(0xcccccc);
+  scene.background = new THREE.Color(0xcccccc);
 
-  // 2.1 Setup Skybox
-  const skyboxLoader = new THREE.CubeTextureLoader();
-  const skyboxTexture = skyboxLoader.load([
-    "./assets/skybox/texture_desa.jpg", // right
-    "./assets/skybox/texture_desa.jpg", // left
-    "./assets/skybox/texture_langit.jpg", // top
-    "./assets/skybox/texture_langit.jpg", // bottom
-    "./assets/skybox/texture_desa.jpg", // front
-    "./assets/skybox/texture_desa.jpg", // back
-  ]);
-  scene.background = skyboxTexture;
+  new EXRLoader().load(
+    "./assets/skybox/citrus_orchard_road_puresky_1k.exr",
+    function (texture) {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+
+      scene.background = texture;
+      scene.environment = texture;
+    }
+  );
 
   // 3. Setup Kamera (Standing Position)
   camera = new THREE.PerspectiveCamera(
@@ -774,7 +1039,10 @@ function init() {
     0.1,
     2000
   );
-  camera.position.set(-23.427, 19.0, 49.81);
+  // camera.position.set(-23.427, 19.0, 49.81); // koordinat saat scene glb (1.381,6.098,1.237) (dari scene_old.glb) (algof simpen)
+  camera.position.set(-24.808, 12.902, 48.573); // koordinat saat sceneglb (0,0,0) (dari scene.glb saat ini)
+
+  // Make camera look DOWN towards the model center
   camera.rotation.x = -0.3; // Tilt down about 17 degrees
 
   // 3.5 SETUP KAMERA PREVIEW
@@ -784,6 +1052,16 @@ function init() {
     0.1,
     2000
   );
+  previewCamera.position.set(0, 50, 100);
+
+  // 3.5 SETUP KAMERA PREVIEW (BARU)
+  previewCamera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    2000
+  );
+  // Posisi awal preview camera (akan di-override di animate)
   previewCamera.position.set(0, 50, 100);
 
   // 4. Setup PointerLockControls
@@ -874,14 +1152,22 @@ function init() {
         moveRight = true;
         break;
       case "KeyE":
-        // Toggle info panel
+        // Display info panel when E is pressed
         if (currentInteractableObject && controls.isLocked) {
-          isInfoPanelOpen = !isInfoPanelOpen;
-          updateInfoPanelVisibility();
+          // Check if it's the Canting object
+          if (currentInteractableObject.name === "Object_3_4") {
+            displayCantingObjectInfo();
+          } else if (currentBatikName) {
+            // Display batik info if it's a batik object
+            displayBatikInfo(currentBatikName, currentInteractableObject);
+          }
         }
         break;
+      case "ShiftLeft":
+        isSprinting = true;
+        break;
       case "KeyQ":
-        // Open Canting modal
+        // Open Canting modal when Q is pressed on Object_3_4
         if (
           isLookingAtCantingObject &&
           controls.isLocked &&
@@ -906,6 +1192,9 @@ function init() {
         break;
       case "KeyD":
         moveRight = false;
+        break;
+      case "ShiftLeft":
+        isSprinting = false;
         break;
     }
   };
@@ -940,8 +1229,11 @@ function init() {
       model.traverse((child) => {
         if (child.isMesh) {
           const name = child.name.toLowerCase();
+
+          // Check the mesh's PARENT name (because paving/lantai are parent groups)
           const parentName = child.parent?.name?.toLowerCase() || "";
 
+          // Identify ground objects by checking both mesh name AND parent name
           if (
             name.includes("paving") ||
             name.includes("lantai") ||
@@ -951,9 +1243,17 @@ function init() {
             parentName.includes("ramp")
           ) {
             groundObjects.push(child);
+            console.log(
+              "Ground object found:",
+              child.name,
+              "| Parent:",
+              child.parent?.name
+            );
           } else {
             nonGroundObjects.push(child);
           }
+
+          // All objects can still be collided with horizontally
           collidableObjects.push(child);
         }
       });
@@ -963,23 +1263,42 @@ function init() {
         if (child.isMesh && child.name === "Object_3_4") {
           cantingObject = child;
           cantingOriginalMaterial = child.material.clone();
+
+          // Make it pure white initially with double-sided rendering
           child.material = new THREE.MeshStandardMaterial({
             color: 0xffffff,
             roughness: 0.7,
             metalness: 0.1,
-            side: THREE.DoubleSide,
+            side: THREE.DoubleSide, // Render both front and back
           });
+
+          console.log(
+            "Virtual Canting: Object_3_4 found and set to white (double-sided)!"
+          );
         }
       });
 
       // Tekstur Rumput (Opsional jika ada di kode lama)
       model.traverse((child) => {
-        if (child.name === "Object_14" || child.name === "paving") {
+        if (child.name === "Object_14") {
           const textureLoader = new THREE.TextureLoader();
-          const grassMap = textureLoader.load("./assets/texture_grass.jpg");
+          const grassMap = textureLoader.load("./assets/texture_grass.png");
           grassMap.wrapS = THREE.RepeatWrapping;
           grassMap.wrapT = THREE.RepeatWrapping;
-          grassMap.repeat.set(10, 10);
+          grassMap.repeat.set(3, 3);
+          child.material.map = grassMap;
+          child.material.color.setHex(0xffffff);
+          child.material.metalness = 0.0;
+          child.material.roughness = 1.0;
+          child.material.needsUpdate = true;
+          console.log("Tekstur rumput berhasil dipasang via kode!");
+        }
+        if (child.name === "area_terlarang") {
+          const textureLoader = new THREE.TextureLoader();
+          const grassMap = textureLoader.load("./assets/texture_grass.png");
+          grassMap.wrapS = THREE.RepeatWrapping;
+          grassMap.wrapT = THREE.RepeatWrapping;
+          grassMap.repeat.set(100, 100);
           child.material.map = grassMap;
           child.material.needsUpdate = true;
         }
@@ -994,15 +1313,38 @@ function init() {
   // Handle Resize Window
   window.addEventListener("resize", onWindowResize);
 
-  // Canting Modal Event Listeners
+  // Setup Canting Modal Event Listeners (backup for onclick)
   document.addEventListener("DOMContentLoaded", function () {
+    // Close button
     const closeBtn = document.querySelector(".close-btn");
-    if (closeBtn) closeBtn.addEventListener("click", closeCantingModal);
+    if (closeBtn) {
+      closeBtn.addEventListener("click", closeCantingModal);
+    }
 
+    // Motif selection
+    const motifCard = document.querySelector(".motif-card");
+    if (motifCard) {
+      motifCard.addEventListener("click", function () {
+        selectMotif("./assets/megamendung.jpg");
+      });
+    }
+
+    // Finish button
     const finishBtn = document.querySelector(".finish-btn");
-    if (finishBtn) finishBtn.addEventListener("click", finishCanting);
-    
-    // ... Tambahkan listener lain jika perlu ...
+    if (finishBtn) {
+      finishBtn.addEventListener("click", finishCanting);
+    }
+
+    // Back button
+    const backBtn = document.querySelector(".back-btn");
+    if (backBtn) {
+      backBtn.addEventListener("click", function () {
+        document.getElementById("canvas-screen").style.display = "none";
+        document.getElementById("motif-selection").style.display = "block";
+      });
+    }
+
+    console.log("Canting modal event listeners attached!");
   });
 }
 
@@ -1014,18 +1356,18 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-// Check if object name indicates it's a plane
-function isBatikObject(name, parentName) {
-  if (!name && !parentName) return false;
+// Check if object name indicates it's a batik object_batik_* with userData
+function isBatikObject(name, userData) {
+  if (!name) return false;
 
-  const lowerName = name ? name.toLowerCase() : "";
-  const lowerParentName = parentName ? parentName.toLowerCase() : "";
+  const lowerName = name.toLowerCase();
 
-  // Check if the object name or parent name contains 'batik'
+  // Check if object name starts with 'object_batik_' and has userData with name property
   return (
-    lowerName.includes("batik") ||
-    lowerParentName.includes("batik") ||
-    lowerParentName.startsWith("batik_")
+    lowerName.startsWith("object_batik_") &&
+    userData &&
+    userData.name &&
+    typeof userData.name === "string"
   );
 }
 
@@ -1070,28 +1412,31 @@ function updateRaycaster() {
     // Check if it's a plane/mesh
     const geometryType = objectHit.geometry?.type || "Unknown";
 
-    // Get object name
+    // Get object name and userData
     const displayName = objectHit.name || "Unnamed Object";
+    const objectUserData = objectHit.userData || {};
     const parentName = objectHit.parent?.name || "";
 
     // Check if this is Object_3_4 (Canting object)
     const isCantingObj = displayName === "Object_3_4";
 
-    // Check if this is a plane and within interaction distance
-    const isBatik = isBatikObject(displayName, parentName);
+    // Check if this is a batik object (object_batik_* with userData.name) and within interaction distance
+    const isBatik = isBatikObject(displayName, objectUserData);
     const canInteract =
       (isBatik || isCantingObj) && distance <= INTERACTION_DISTANCE;
 
     if (canInteract) {
-      // Show interaction prompt
+      // Show interaction prompt only if info panel is not already open
       currentInteractableObject = objectHit;
       isLookingAtCantingObject = isCantingObj;
+      // Store batik name from userData for E-key handler
+      currentBatikName = isBatik ? objectUserData.name : null;
 
       // Update prompt text based on object type
       if (isCantingObj) {
         interactionPrompt.innerHTML =
           'Press <span class="key">E</span> to view info | <span class="key">Q</span> to use Canting';
-      } else {
+      } else if (isBatik) {
         interactionPrompt.innerHTML =
           'Press <span class="key">E</span> to view info';
       }
@@ -1138,35 +1483,24 @@ function updateRaycaster() {
                 `;
       }
 
-      // Add position info
-      infoHTML += `
-                <div class="separator"></div>
-                <div class="info-row">
-                    <div class="info-label">Position:</div>
-                    <div class="info-value" style="font-size:11px;">
-                        X: ${point.x.toFixed(1)}<br>
-                        Y: ${point.y.toFixed(1)}<br>
-                        Z: ${point.z.toFixed(1)}
-                    </div>
-                </div>
-            `;
+      if (!isInfoPanelOpen) {
+        // Update prompt text based on object type
+        if (isCantingObj) {
+          interactionPrompt.innerHTML =
+            'Press <span class="key">E</span> to view info | <span class="key">Q</span> to use Canting';
+        } else {
+          interactionPrompt.innerHTML =
+            'Press <span class="key">E</span> to view info';
+        }
 
-      // Add vertices count if available
-      if (objectHit.geometry?.attributes?.position) {
-        const vertexCount = objectHit.geometry.attributes.position.count;
-        infoHTML += `
-                    <div class="info-row">
-                        <div class="info-label">Vertices:</div>
-                        <div class="info-value">${vertexCount.toLocaleString()}</div>
-                    </div>
-                `;
+        interactionPrompt.classList.add("visible");
+      } else {
+        interactionPrompt.classList.remove("visible");
       }
-
-      infoContent.innerHTML = infoHTML;
-      updateInfoPanelVisibility();
     } else {
       // Not a batik or too far away
       currentInteractableObject = null;
+      currentBatikName = null;
       isInfoPanelOpen = false;
       isLookingAtCantingObject = false;
       interactionPrompt.classList.remove("visible");
@@ -1193,6 +1527,7 @@ function updateRaycaster() {
   } else {
     // Jika tidak melihat apa-apa (lihat langit/kosong)
     currentInteractableObject = null;
+    currentBatikName = null;
     isInfoPanelOpen = false;
     isLookingAtCantingObject = false;
     interactionPrompt.classList.remove("visible");
@@ -1303,9 +1638,9 @@ function adjustHeightToGround() {
     if (frameCount % 30 === 0) {
       console.log(
         `WARNING: Standing on obstacle "${closestObject.object.name}" ` +
-          `(${closestDistance.toFixed(
-            2
-          )}m below), ground is ${groundDistance.toFixed(2)}m below`
+        `(${closestDistance.toFixed(
+          2
+        )}m below), ground is ${groundDistance.toFixed(2)}m below`
       );
     }
     return false;
@@ -1348,8 +1683,14 @@ function animate() {
     const prompt = document.getElementById("interaction-prompt");
     if (prompt) prompt.classList.remove("visible");
 
+    const infoPanel = document.getElementById("info-panel");
+    if (infoPanel) infoPanel.classList.add("hidden");
+
     return;
   }
+
+  const crosshair = document.getElementById("crosshair");
+  if (crosshair) crosshair.style.display = "block";
 
   // Log position even when NOT locked (every 2 seconds)
   logInterval += delta;
@@ -1365,6 +1706,9 @@ function animate() {
   }
 
   if (controls.isLocked) {
+    // Calculate current speed (normal or sprint)
+    const currentSpeed = isSprinting ? moveSpeed * sprintMultiplier : moveSpeed;
+
     // Reset velocity
     velocity.x -= velocity.x * 10.0 * delta;
     velocity.z -= velocity.z * 10.0 * delta;
@@ -1375,8 +1719,8 @@ function animate() {
     direction.normalize();
 
     if (moveForward || moveBackward)
-      velocity.z -= direction.z * moveSpeed * delta;
-    if (moveLeft || moveRight) velocity.x -= direction.x * moveSpeed * delta;
+      velocity.z -= direction.z * currentSpeed * delta;
+    if (moveLeft || moveRight) velocity.x -= direction.x * currentSpeed * delta;
 
     // Store old position for collision rollback
     const oldPosition = camera.position.clone();
