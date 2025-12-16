@@ -1,14 +1,14 @@
 {
   "batik_patterns": [
     {
-      "name": "Custom-Pattern",
+      "name": "Custom Pattern",
       "description": "Pola batik yang dibuat secara custom oleh pengguna.",
       "philosophy": [
         "-"
       ]
     },
     {
-      "name": "AI-Generated Pattern",
+      "name": "AI Enhanced Pattern",
       "description": "Pola batik yang dibuat secara custom oleh pengguna dan direalisasikan sebagai pola batik oleh AI.",
       "philosophy": [
         "-"

@@ -51,8 +51,6 @@ const motifToBatikMap = {
   "./assets/batik_sidomukti.jpg": "Sidomukti",
   "./assets/batik_sogan.jpg": "Sogan",
   "./assets/batik_lereng.jpg": "Lereng",
-  "./assets/ai_generated_pattern.jpg": "AI-Generated Pattern",
-  "./assets/custom_pattern.jpg": "Custom Pattern"
 };
 
 // Carousel System
@@ -259,14 +257,14 @@ function closeInfoPanel() {
 // Display info panel for Object_3_4 (Canting/Tool)
 function displayCantingObjectInfo() {
   // Check if a batik from the carousel has been applied
-  if (appliedBatikOnCanting) {
+  if (appliedBatikOnCanting && batikDatabase[appliedBatikOnCanting]) {
     // Display the applied batik's information instead
     displayBatikInfo(appliedBatikOnCanting, cantingObject);
     return;
   }
   // Otherwise, show canting tool info
   // Update header
-  document.getElementById("batik-title").textContent = "🎨 Alat Canting";
+  document.getElementById("batik-title").textContent = "🎨 Virtual Canting";
 
   // Get the preview image element
   const previewImg = document.getElementById("batik-preview");
@@ -856,7 +854,7 @@ function finishCustomPattern() {
 
   // Convert canvas to data URL (base64 image)
   const dataURL = customCanvas.toDataURL("image/png");
-  appliedBatikOnCanting = "Custom-Pattern";
+  appliedBatikOnCanting = "Custom Pattern";
   applyTextureToObject(dataURL);
 }
 
@@ -988,7 +986,7 @@ function selectOriginalPattern() {
 function selectEnhancedPattern() {
   console.log("Menggunakan pola AI enhanced");
   if (enhancedImageData) {
-    appliedBatikOnCanting = "AI-Generated-Pattern";
+    appliedBatikOnCanting = "AI Enhanced Pattern";
     applyTextureToObject(enhancedImageData);
   } else {
     alert("Error: Data AI enhanced tidak ditemukan");
