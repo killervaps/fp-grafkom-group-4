@@ -1234,7 +1234,9 @@ function init() {
 
   // 3. Tombol Kembali ke Menu Utama
   if (backToMenuBtn) {
-    backToMenuBtn.addEventListener("click", function () {
+    backToMenuBtn.addEventListener("click", function (e) {
+      e.stopPropagation(); // Prevent click from bubbling to pauseScreen
+      
       // Reset status game
       isGameActive = false;
       
