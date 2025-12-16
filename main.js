@@ -58,6 +58,11 @@ let currentPage = 1;
 let totalPages = 2; // We have 2 pages (8 items on page 1, 5 items on page 2)
 const itemsPerPage = 8;
 
+// Carousel System
+let currentPage = 1;
+let totalPages = 2; // We have 2 pages (8 items on page 1, 5 items on page 2)
+const itemsPerPage = 8;
+
 // Interaction system
 const INTERACTION_DISTANCE = 20.0; // Distance threshold for interaction (meters)
 let currentInteractableObject = null; // Object currently in range for interaction
@@ -644,8 +649,7 @@ function updateCarouselDisplay() {
   updateNavigationButtons();
 
   console.log(
-    `Carousel: Page ${currentPage}/${totalPages}, showing items ${
-      startIndex + 1
+    `Carousel: Page ${currentPage}/${totalPages}, showing items ${startIndex + 1
     }-${endIndex}`
   );
 }
@@ -660,11 +664,10 @@ function updatePageIndicators() {
   // Create indicators for each page with vintage styling
   for (let i = 1; i <= totalPages; i++) {
     const indicator = document.createElement("span");
-    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${
-      i === currentPage
-        ? "bg-amber-400 w-8"
-        : "bg-amber-800/40 hover:bg-amber-700/60"
-    }`;
+    indicator.className = `w-2 h-2 rounded-full transition-all duration-300 cursor-pointer ${i === currentPage
+      ? "bg-amber-400 w-8"
+      : "bg-amber-800/40 hover:bg-amber-700/60"
+      }`;
     indicator.style.boxShadow =
       i === currentPage
         ? "0 0 8px rgba(251, 191, 36, 0.6)"
@@ -1181,8 +1184,14 @@ function init() {
   // Make camera look DOWN towards the model center
   camera.rotation.x = -0.3; // Tilt down about 17 degrees
 
-  console.log("Initial Camera Position:", camera.position);
-  console.log("Camera rotation (looking down):", camera.rotation);
+  // 3.5 SETUP KAMERA PREVIEW
+  previewCamera = new THREE.PerspectiveCamera(
+    60,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    2000
+  );
+  previewCamera.position.set(0, 50, 100);
 
   // 3.5 SETUP KAMERA PREVIEW (BARU)
   previewCamera = new THREE.PerspectiveCamera(
@@ -1197,14 +1206,20 @@ function init() {
   // 4. Setup PointerLockControls
   controls = new PointerLockControls(camera, renderer.domElement);
 
-  // Get UI elements from HTML
+  // --- LOGIKA UI & MENU (UPDATE DISINI) ---
+  
+  // Ambil elemen UI
   const welcomeScreen = document.getElementById("welcome-screen");
   const pauseScreen = document.getElementById("pause-screen");
   const startBtn = document.getElementById("start-btn");
+  
+  // Ambil elemen tombol di Pause Screen
+  const resumeBtn = document.getElementById("resume-btn");
+  const backToMenuBtn = document.getElementById("back-to-menu-btn");
 
-  // Start button - lock pointer and hide welcome screen
+  // 1. Tombol Start di Menu Awal
   startBtn.addEventListener("click", function () {
-    controls.lock();
+    controls.lock(); // Mengunci pointer akan memicu event 'lock'
     welcomeScreen.style.display = "none";
     isGameActive = true;
   });
@@ -1222,12 +1237,48 @@ function init() {
     controls.lock();
   });
 
+  // 3. Tombol Kembali ke Menu Utama
+  if (backToMenuBtn) {
+    backToMenuBtn.addEventListener("click", function () {
+      // Reset status game
+      isGameActive = false;
+      
+      // UI Handling
+      pauseScreen.style.display = "none"; // Tutup pause
+      welcomeScreen.style.display = "grid"; // Buka welcome screen (gunakan grid layout)
+      document.getElementById('controls-modal').classList.add('hidden'); // Pastikan modal kontrol tutup
+      
+      // Reset Posisi Kamera & Player
+      camera.position.set(-23.427, 19.0, 49.81);
+      camera.rotation.set(-0.3, 0, 0);
+      
+      // Reset Movement Flags (Supaya pas main lagi tidak jalan sendiri)
+      moveForward = false;
+      moveBackward = false;
+      moveLeft = false;
+      moveRight = false;
+      
+      // Buka kunci pointer (karena kita di menu)
+      controls.unlock();
+    });
+  }
+
+  // Event Listener saat Pointer Terkunci (Game Main)
   controls.addEventListener("lock", function () {
     pauseScreen.style.display = "none";
+    // Tutup modal kontrol jika terbuka
+    document.getElementById('controls-modal').classList.add('hidden');
+    document.getElementById('controls-modal').classList.remove('flex');
   });
 
+  // Event Listener saat Pointer Lepas (Game Pause / Tekan ESC)
   controls.addEventListener("unlock", function () {
-    pauseScreen.style.display = "flex";
+    // Tampilkan Pause Screen HANYA JIKA:
+    // 1. Game sedang aktif (bukan di menu utama)
+    // 2. Tidak sedang membuka modal Canting (karena modal canting juga butuh unlock mouse)
+    if (isGameActive && !isCantingModalOpen) {
+        pauseScreen.style.display = "flex";
+    }
   });
 
   // Keyboard controls
@@ -1312,44 +1363,14 @@ function init() {
       console.log("MODEL LOADED SUCCESSFULLY!");
       const model = gltf.scene;
       scene.add(model);
-
-      // Store reference for raycasting
       loadedModel = model;
 
-      // Hitung Bounding Box
+      // Hitung Bounding Box (Opsional log)
       const box = new THREE.Box3().setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
+      if (size.length() === 0) return;
 
-      console.log(
-        "Model Size:",
-        `X:${size.x.toFixed(2)} Y:${size.y.toFixed(2)} Z:${size.z.toFixed(2)}`
-      );
-      console.log(
-        "Model Center:",
-        `X:${center.x.toFixed(2)} Y:${center.y.toFixed(2)} Z:${center.z.toFixed(
-          2
-        )}`
-      );
-      console.log(
-        "Camera Position:",
-        `X:${camera.position.x.toFixed(3)} Y:${camera.position.y.toFixed(
-          3
-        )} Z:${camera.position.z.toFixed(3)}`
-      );
-      console.log(
-        "Distance from camera to model center:",
-        camera.position.distanceTo(center).toFixed(2)
-      );
-
-      if (size.length() === 0) {
-        console.error("!!!MODEL KOSONG!!!");
-        return;
-      }
-
-      console.log("Model loaded at original position - no repositioning");
-
-      // Setup collision objects - collect all meshes from the model
+      // Setup collision objects
       model.traverse((child) => {
         if (child.isMesh) {
           const name = child.name.toLowerCase();
@@ -1374,7 +1395,6 @@ function init() {
               child.parent?.name
             );
           } else {
-            // Everything else is a non-ground object
             nonGroundObjects.push(child);
           }
 
@@ -1383,12 +1403,7 @@ function init() {
         }
       });
 
-      console.log(`Collision system ready:`);
-      console.log(`- Ground objects: ${groundObjects.length}`);
-      console.log(`- Wall objects: ${nonGroundObjects.length}`);
-      console.log(`- Total collidable: ${collidableObjects.length}`);
-
-      // Virtual Canting: Find Object_3_4 and make it white
+      // Virtual Canting: Setup Object_3_4
       model.traverse((child) => {
         if (child.isMesh && child.name === "Object_3_4") {
           cantingObject = child;
@@ -1408,13 +1423,14 @@ function init() {
         }
       });
 
+      // Tekstur Rumput (Opsional jika ada di kode lama)
       model.traverse((child) => {
         if (child.name === "Object_14") {
           const textureLoader = new THREE.TextureLoader();
-          const grassMap = textureLoader.load("./assets/texture_grass.jpg");
+          const grassMap = textureLoader.load("./assets/texture_grass.png");
           grassMap.wrapS = THREE.RepeatWrapping;
           grassMap.wrapT = THREE.RepeatWrapping;
-          grassMap.repeat.set(10, 10);
+          grassMap.repeat.set(3, 3);
           child.material.map = grassMap;
           child.material.color.setHex(0xffffff);
           child.material.metalness = 0.0;
@@ -1424,28 +1440,21 @@ function init() {
         }
         if (child.name === "area_terlarang") {
           const textureLoader = new THREE.TextureLoader();
-          const grassMap = textureLoader.load("./assets/texture_grass.jpg");
+          const grassMap = textureLoader.load("./assets/texture_grass.png");
           grassMap.wrapS = THREE.RepeatWrapping;
           grassMap.wrapT = THREE.RepeatWrapping;
           grassMap.repeat.set(100, 100);
           child.material.map = grassMap;
-          child.material.color.setHex(0xffffff);
-          child.material.metalness = 0.0;
-          child.material.roughness = 1.0;
           child.material.needsUpdate = true;
-          console.log("Tekstur rumput berhasil dipasang via kode!");
         }
       });
     },
-    function (xhr) {
-      const percent = ((xhr.loaded / xhr.total) * 100).toFixed(2);
-      console.log(`Loading: ${percent}%`);
-    },
+    undefined,
     function (error) {
-      console.error("ERROR:", error);
-      console.error("Pastikan file 'scene.glb' ada di folder yang sama!");
+      console.error("ERROR loading model:", error);
     }
   );
+
   // Handle Resize Window
   window.addEventListener("resize", onWindowResize);
 
@@ -1774,9 +1783,9 @@ function adjustHeightToGround() {
     if (frameCount % 30 === 0) {
       console.log(
         `WARNING: Standing on obstacle "${closestObject.object.name}" ` +
-          `(${closestDistance.toFixed(
-            2
-          )}m below), ground is ${groundDistance.toFixed(2)}m below`
+        `(${closestDistance.toFixed(
+          2
+        )}m below), ground is ${groundDistance.toFixed(2)}m below`
       );
     }
     return false;
