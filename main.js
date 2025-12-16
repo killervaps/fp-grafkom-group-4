@@ -1437,6 +1437,9 @@ function init() {
           grassMap.wrapT = THREE.RepeatWrapping;
           grassMap.repeat.set(100, 100);
           child.material.map = grassMap;
+          child.material.color.setHex(0xffffff);
+          child.material.metalness = 0.0;
+          child.material.roughness = 1.0;
           child.material.needsUpdate = true;
         }
       });
