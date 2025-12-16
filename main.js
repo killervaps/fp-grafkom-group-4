@@ -41,16 +41,18 @@ let appliedBatikOnCanting = null; // Track which batik pattern is applied to Obj
 
 // Motif to Batik Name Mapping
 const motifToBatikMap = {
-  "./assets/megamendung.jpg": "Mega Mendung",
-  "./assets/tujuhrupa.jpg": "Tujuh Rupa",
-  "./assets/parang.jpg": "Parang",
-  "./assets/kawung.jpg": "Kawung",
-  "./assets/betawi.jpg": "Betawi",
-  "./assets/sekar-jagad.jpg": "Sekar Jagad",
-  "./assets/simbut.jpg": "Simbut",
-  "./assets/sidokmuti.jpg": "Sidokmuti",
-  "./assets/sogan.jpg": "Sogan",
-  "./assets/lereng.jpg": "Lereng",
+  "./assets/batik_megamendung.jpg": "Mega Mendung",
+  "./assets/batik_tujuhrupa.jpg": "Tujuh Rupa",
+  "./assets/batik_parang.jpg": "Parang",
+  "./assets/batik_kawung.jpg": "Kawung",
+  "./assets/batik_betawi.jpg": "Betawi",
+  "./assets/batik_sekarjagad.jpg": "Sekar Jagad",
+  "./assets/batik_simbut.jpg": "Simbut",
+  "./assets/batik_sidomukti.jpg": "Sidomukti",
+  "./assets/batik_sogan.jpg": "Sogan",
+  "./assets/batik_lereng.jpg": "Lereng",
+  "./assets/ai_generated_pattern.jpg": "AI-Generated Pattern",
+  "./assets/custom_pattern.jpg": "Custom Pattern"
 };
 
 // Carousel System
@@ -93,8 +95,8 @@ const modelPath = "./scene.glb";
 // Virtual Canting Functions
 function openCantingModal() {
   isCantingModalOpen = true;
-  controls.unlock();
   document.getElementById("canting-modal").style.display = "flex";
+  controls.unlock();
 
   // Reset to page 1 and update display
   currentPage = 1;
@@ -153,8 +155,7 @@ function displayBatikInfo(batikName, batikObject) {
   }
 
   // Update description
-  document.getElementById("batik-description").textContent =
-    batikInfo.description;
+  document.getElementById("batik-description").textContent = batikInfo.description;
 
   // Update philosophy
   const philosophyList = document.getElementById("batik-philosophy");
@@ -173,7 +174,8 @@ function displayBatikInfo(batikName, batikObject) {
   // Show panel
   const infoPanel = document.getElementById("info-panel");
   console.log("Info panel element:", infoPanel);
-  infoPanel.classList.remove("hidden");
+  // infoPanel.classList.remove("hidden");
+  infoPanel.style.display = "flex";
   controls.unlock(); // Unlock to show cursor and pause the game
   console.log("Info panel shown. Controls unlocked.");
   isInfoPanelOpen = true;
@@ -247,7 +249,8 @@ function applyMaterialToHeader(materialDataUrl) {
 
 function closeInfoPanel() {
   const infoPanel = document.getElementById("info-panel");
-  infoPanel.classList.add("hidden");
+  // infoPanel.classList.add("hidden");
+  infoPanel.style.display = "none";
   controls.lock(); // Lock to hide cursor and resume the game
   isInfoPanelOpen = false;
   console.log("Info panel closed. Controls locked.");
@@ -256,12 +259,11 @@ function closeInfoPanel() {
 // Display info panel for Object_3_4 (Canting/Tool)
 function displayCantingObjectInfo() {
   // Check if a batik from the carousel has been applied
-  if (appliedBatikOnCanting && batikDatabase[appliedBatikOnCanting]) {
+  if (appliedBatikOnCanting) {
     // Display the applied batik's information instead
     displayBatikInfo(appliedBatikOnCanting, cantingObject);
     return;
   }
-
   // Otherwise, show canting tool info
   // Update header
   document.getElementById("batik-title").textContent = "🎨 Alat Canting";
@@ -323,7 +325,8 @@ function displayCantingObjectInfo() {
 
   // Show panel
   const infoPanel = document.getElementById("info-panel");
-  infoPanel.classList.remove("hidden");
+  // infoPanel.classList.remove("hidden");
+  infoPanel.style.display = "flex";
   controls.unlock(); // Unlock to show cursor and pause the game
   console.log("Canting tool info panel shown.");
   isInfoPanelOpen = true;
@@ -347,6 +350,15 @@ const AI_BACKEND_URL =
 
 function initCantingCanvas(motifPath) {
   console.log("🎨 Initializing canvas with motif:", motifPath);
+
+  const finishBtn = document.getElementById("finish-canting-btn");
+  const tooltip = document.getElementById("finish-tooltip");
+  if (finishBtn) {
+    finishBtn.disabled = true;
+    finishBtn.classList.add("opacity-50", "cursor-not-allowed");
+    finishBtn.classList.remove("animate-bounce");
+    if(tooltip) tooltip.textContent = "Selesaikan pola terlebih dahulu";
+  }
 
   // Reset revealed areas
   revealedAreas = [];
@@ -440,8 +452,10 @@ function draw(e) {
   if (!isDrawing) return;
 
   const rect = cantingCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  const scaleX = cantingCanvas.width / rect.width;
+  const scaleY = cantingCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
 
   // Log every 10th draw to avoid spam
   if (drawCount % 10 === 0) {
@@ -454,6 +468,10 @@ function draw(e) {
 
   // Redraw entire canvas: background first, then white layer with holes
   redrawCanvas();
+
+  if (drawCount % 20 === 0) {
+    checkCanvasProgress();
+  }
 }
 
 function redrawCanvas() {
@@ -515,9 +533,50 @@ function redrawCanvas() {
   }
 }
 
+function checkCanvasProgress() {
+  if (!cantingCanvas.maskCtx) return;
+
+  const width = cantingCanvas.width;
+  const height = cantingCanvas.height;
+  
+  const imageData = cantingCanvas.maskCtx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  
+  let clearPixels = 0;
+  const step = 4; 
+  
+  for (let i = 0; i < data.length; i += 4 * step) {
+    if (data[i + 3] === 0) {
+      clearPixels++;
+    }
+  }
+
+  const totalPixelsToCheck = (width * height) / step;
+  const percentage = clearPixels / totalPixelsToCheck;
+
+  if (percentage > 0.995) {
+    enableFinishButton();
+  }
+}
+
+function enableFinishButton() {
+  const finishBtn = document.getElementById("finish-canting-btn");
+  const tooltip = document.getElementById("finish-tooltip");
+  
+  if (finishBtn && finishBtn.disabled) {
+    finishBtn.disabled = false;
+    finishBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    
+    if(tooltip) tooltip.textContent = "Terapkan";
+    
+    console.log("Pattern fully revealed! Button enabled.");
+  }
+}
+
 function stopDrawing() {
   if (isDrawing) {
     console.log("🛑 Drawing stopped. Total strokes:", drawCount);
+    checkCanvasProgress();
   }
   isDrawing = false;
 }
@@ -538,8 +597,6 @@ function finishCanting() {
       // Apply texture to the object with double-sided rendering
       cantingObject.material = new THREE.MeshStandardMaterial({
         map: texture,
-        roughness: 0.7,
-        metalness: 0.1,
         side: THREE.DoubleSide, // Render both front and back
       });
 
@@ -673,6 +730,11 @@ function createCustomPattern() {
   document.getElementById("custom-pattern-screen").classList.remove("hidden");
   document.getElementById("custom-pattern-screen").classList.add("flex");
 
+  const applyBtn = document.getElementById("apply-custom-btn");
+  applyBtn.disabled = true;
+  applyBtn.classList.add("opacity-50", "cursor-not-allowed");
+  applyBtn.classList.remove("group");
+
   // Initialize custom canvas
   initCustomCanvas();
 }
@@ -718,12 +780,20 @@ function initCustomCanvas() {
 function startCustomDrawing(e) {
   isCustomDrawing = true;
   const rect = customCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  // Scale mouse coordinates to match canvas internal resolution
+  const scaleX = customCanvas.width / rect.width;
+  const scaleY = customCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
 
   // Begin new path
   customCtx.beginPath();
   customCtx.moveTo(x, y);
+
+  const applyBtn = document.getElementById("apply-custom-btn");
+  applyBtn.disabled = false;
+  applyBtn.classList.remove("opacity-50", "cursor-not-allowed");
+  applyBtn.classList.add("group");
 
   console.log("✏️ Drawing started at:", Math.round(x), Math.round(y));
 }
@@ -732,8 +802,11 @@ function drawCustom(e) {
   if (!isCustomDrawing) return;
 
   const rect = customCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+  // Scale mouse coordinates to match canvas internal resolution
+  const scaleX = customCanvas.width / rect.width;
+  const scaleY = customCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
 
   // Draw line
   customCtx.strokeStyle = brushColor;
@@ -750,6 +823,7 @@ function stopCustomDrawing() {
     console.log("✏️ Drawing stopped");
   }
   isCustomDrawing = false;
+
   customCtx.beginPath(); // Reset path
 }
 
@@ -782,7 +856,7 @@ function finishCustomPattern() {
 
   // Convert canvas to data URL (base64 image)
   const dataURL = customCanvas.toDataURL("image/png");
-
+  appliedBatikOnCanting = "Custom-Pattern";
   applyTextureToObject(dataURL);
 }
 
@@ -790,12 +864,24 @@ function finishCustomPattern() {
 async function enhanceWithAI() {
   const loadingEl = document.getElementById("ai-loading");
   const enhanceBtn = document.getElementById("enhance-btn");
+  const backBtn = document.getElementById("back-to-canvas-btn");
+  const applyBtn = document.getElementById("apply-custom-btn");
 
   try {
     // Show loading
     loadingEl.classList.remove("hidden");
+    
     enhanceBtn.disabled = true;
-    enhanceBtn.innerHTML = "⏳ Memproses...";
+    backBtn.disabled = true;
+    applyBtn.disabled = true;
+
+    backBtn.classList.remove("group");
+    applyBtn.classList.remove("group");
+
+    backBtn.classList.add("opacity-50", "cursor-not-allowed");
+    applyBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+    enhanceBtn.innerHTML = "⏳";
 
     console.log("🚀 Memulai AI enhancement...");
 
@@ -848,8 +934,18 @@ async function enhanceWithAI() {
   } finally {
     // Hide loading
     loadingEl.classList.add("hidden");
+
     enhanceBtn.disabled = false;
-    enhanceBtn.innerHTML = "✨ Enhance dengan AI";
+    backBtn.disabled = false;
+    applyBtn.disabled = false;
+
+    backBtn.classList.add("group");
+    applyBtn.classList.add("group");
+
+    backBtn.classList.remove("opacity-50", "cursor-not-allowed");
+    applyBtn.classList.remove("opacity-50", "cursor-not-allowed");
+
+    enhanceBtn.innerHTML = "✨";
   }
 }
 
@@ -885,12 +981,14 @@ function showAIPreview(originalBase64, enhancedBase64) {
 function selectOriginalPattern() {
   console.log("Menggunakan pola asli");
   const originalData = customCanvas.toDataURL("image/png");
+  appliedBatikOnCanting = "Custom-Pattern";
   applyTextureToObject(originalData);
 }
 
 function selectEnhancedPattern() {
   console.log("Menggunakan pola AI enhanced");
   if (enhancedImageData) {
+    appliedBatikOnCanting = "AI-Generated-Pattern";
     applyTextureToObject(enhancedImageData);
   } else {
     alert("Error: Data AI enhanced tidak ditemukan");
@@ -918,7 +1016,7 @@ function applyTextureToObject(textureDataURL) {
       });
 
       // For custom patterns, mark as null (not from the predefined batik list)
-      appliedBatikOnCanting = null;
+      // appliedBatikOnCanting = null;
       console.log("✨ Texture applied to Object_3_4! (Custom pattern)");
 
       // Close modal and return to game
@@ -1006,6 +1104,52 @@ loadBatikData().then(() => {
   animate();
 });
 
+// Loading Manager for tracking progress
+const loadingManager = new THREE.LoadingManager();
+let totalAssets = 0;
+let loadedAssets = 0;
+
+loadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
+  totalAssets = itemsTotal;
+  console.log('Started loading:', url);
+  updateLoadingProgress(0);
+};
+
+loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
+  loadedAssets = itemsLoaded;
+  totalAssets = itemsTotal;
+  const progress = Math.round((itemsLoaded / itemsTotal) * 100);
+  updateLoadingProgress(progress);
+  console.log(`Loading: ${progress}% (${itemsLoaded}/${itemsTotal})`);
+};
+
+loadingManager.onLoad = function () {
+  console.log('All assets loaded!');
+  updateLoadingProgress(100);
+  // Hide loading screen after a brief delay
+  setTimeout(() => {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('welcome-screen').classList.remove('hidden');
+  }, 500);
+};
+
+loadingManager.onError = function (url) {
+  console.error('Error loading:', url);
+};
+
+function updateLoadingProgress(percentage) {
+  const progressBar = document.getElementById('loading-progress-bar');
+  const percentageText = document.getElementById('loading-percentage');
+  
+  if (progressBar) {
+    progressBar.style.width = percentage + '%';
+  }
+  
+  if (percentageText) {
+    percentageText.textContent = percentage + '%';
+  }
+}
+
 function init() {
   // 1. Setup Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -1017,13 +1161,12 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xcccccc);
 
-  new EXRLoader().load(
+  new EXRLoader(loadingManager).load(
     "./assets/skybox/citrus_orchard_road_puresky_1k.exr",
     function (texture) {
       texture.mapping = THREE.EquirectangularReflectionMapping;
 
       scene.background = texture;
-      scene.environment = texture;
     }
   );
 
@@ -1070,6 +1213,14 @@ function init() {
 
   // Pause screen click handler
   pauseScreen.addEventListener("click", function () {
+    if (typeof isInfoPanelOpen !== 'undefined' && isInfoPanelOpen) {
+      closeInfoPanel();
+    }
+
+    if (typeof isCantingModalOpen !== 'undefined' && isCantingModalOpen) {
+      closeCantingModal();
+    }
+
     controls.lock();
   });
 
@@ -1155,7 +1306,7 @@ function init() {
   scene.add(directionalLight);
 
   // 7. Load Model GLB
-  const loader = new GLTFLoader();
+  const loader = new GLTFLoader(loadingManager);
 
   loader.load(
     modelPath,
@@ -1361,9 +1512,9 @@ function isBatikObject(name, userData) {
 // Update info panel visibility
 function updateInfoPanelVisibility() {
   if (isInfoPanelOpen && currentInteractableObject) {
-    infoPanel.classList.remove("hidden");
+    infoPanel.style.display = "flex";
   } else {
-    infoPanel.classList.add("hidden");
+    infoPanel.style.display = "none";
   }
 }
 
