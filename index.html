@@ -584,7 +584,7 @@
         </div>
       </div>
     </div>
-a
+
     <!-- Welcome/Tutorial Screen -->
     <div
       id="welcome-screen"
@@ -680,7 +680,171 @@ a
         </div>
       </div>
     </div>
-    
+        <div
+      id="controls-modal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[4000]"
+    >
+      <div
+        class="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-2xl border border-slate-600 max-w-2xl w-full shadow-2xl relative"
+      >
+        <button
+          onclick="document.getElementById('controls-modal').classList.add('hidden'); document.getElementById('controls-modal').classList.remove('flex');"
+          class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-8 w-8"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <h2
+          class="text-3xl font-bold text-amber-500 mb-8 text-center tracking-widest uppercase font-serif border-b border-slate-700 pb-4"
+        >
+          Panduan Kontrol
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 font-sans">
+          <div class="space-y-4">
+            <h3 class="text-slate-300 font-bold mb-4 flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 text-amber-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+                />
+              </svg>
+              PERGERAKAN
+            </h3>
+            <div class="flex justify-center gap-2 mb-2">
+              <div
+                class="w-14 h-14 border-b-4 border-slate-600 rounded-lg bg-slate-700 flex items-center justify-center text-white font-mono font-bold text-xl shadow-lg"
+              >
+                W
+              </div>
+            </div>
+            <div class="flex justify-center gap-2">
+              <div
+                class="w-14 h-14 border-b-4 border-slate-600 rounded-lg bg-slate-700 flex items-center justify-center text-white font-mono font-bold text-xl shadow-lg"
+              >
+                A
+              </div>
+              <div
+                class="w-14 h-14 border-b-4 border-slate-600 rounded-lg bg-slate-700 flex items-center justify-center text-white font-mono font-bold text-xl shadow-lg"
+              >
+                S
+              </div>
+              <div
+                class="w-14 h-14 border-b-4 border-slate-600 rounded-lg bg-slate-700 flex items-center justify-center text-white font-mono font-bold text-xl shadow-lg"
+              >
+                D
+              </div>
+            </div>
+            <p class="text-center text-slate-400 text-sm mt-2">
+              Gunakan tombol WASD untuk bergerak
+            </p>
+          </div>
+
+          <div class="space-y-6">
+            <div>
+              <h3
+                class="text-slate-300 font-bold mb-4 flex items-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-amber-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                  />
+                </svg>
+                INTERAKSI
+              </h3>
+              <div class="flex gap-6 justify-center">
+                <div class="text-center">
+                  <div
+                    class="w-14 h-14 border-b-4 border-amber-700 rounded-lg bg-slate-700 flex items-center justify-center text-amber-400 font-mono font-bold text-xl shadow-lg mb-2"
+                  >
+                    E
+                  </div>
+                  <span
+                    class="text-xs text-slate-400 uppercase font-bold tracking-wider"
+                    >Info Objek</span
+                  >
+                </div>
+                <div class="text-center">
+                  <div
+                    class="w-14 h-14 border-b-4 border-amber-700 rounded-lg bg-slate-700 flex items-center justify-center text-amber-400 font-mono font-bold text-xl shadow-lg mb-2"
+                  >
+                    Q
+                  </div>
+                  <span
+                    class="text-xs text-slate-400 uppercase font-bold tracking-wider"
+                    >Membatik</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-700 pt-6 mt-2">
+              <h3 class="text-slate-300 font-bold mb-4 flex items-center gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-amber-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+                MENU
+              </h3>
+              <div class="flex justify-center">
+                <div class="text-center">
+                  <div
+                    class="w-20 h-14 border-b-4 border-slate-600 rounded-lg bg-slate-700 flex items-center justify-center text-slate-200 font-mono font-bold text-xl shadow-lg mb-2"
+                  >
+                    ESC
+                  </div>
+                  <span
+                    class="text-xs text-slate-400 uppercase font-bold tracking-wider"
+                    >Pause</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Pause Screen -->
     <div
       id="pause-screen"

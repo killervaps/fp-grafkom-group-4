@@ -58,11 +58,6 @@ let currentPage = 1;
 let totalPages = 2; // We have 2 pages (8 items on page 1, 5 items on page 2)
 const itemsPerPage = 8;
 
-// Carousel System
-let currentPage = 1;
-let totalPages = 2; // We have 2 pages (8 items on page 1, 5 items on page 2)
-const itemsPerPage = 8;
-
 // Interaction system
 const INTERACTION_DISTANCE = 20.0; // Distance threshold for interaction (meters)
 let currentInteractableObject = null; // Object currently in range for interaction
@@ -330,7 +325,7 @@ function displayCantingObjectInfo() {
   const infoPanel = document.getElementById("info-panel");
   // infoPanel.classList.remove("hidden");
   infoPanel.style.display = "flex";
-  controls.unlock(); // Unlock to show cursor and pause the game
+  controls.unlock();
   console.log("Canting tool info panel shown.");
   isInfoPanelOpen = true;
 }
@@ -1273,10 +1268,7 @@ function init() {
 
   // Event Listener saat Pointer Lepas (Game Pause / Tekan ESC)
   controls.addEventListener("unlock", function () {
-    // Tampilkan Pause Screen HANYA JIKA:
-    // 1. Game sedang aktif (bukan di menu utama)
-    // 2. Tidak sedang membuka modal Canting (karena modal canting juga butuh unlock mouse)
-    if (isGameActive && !isCantingModalOpen) {
+    if (isGameActive && !isCantingModalOpen && !isInfoPanelOpen) {
         pauseScreen.style.display = "flex";
     }
   });
@@ -1526,6 +1518,10 @@ function updateInfoPanelVisibility() {
 }
 
 function updateRaycaster() {
+  if (isInfoPanelOpen || isCantingModalOpen) {
+    interactionPrompt.classList.remove("visible"); // Hide prompt while reading
+    return;
+  }
   // Jika model belum dimuat, jangan lakukan apa-apa
   if (!loadedModel) {
     interactionPrompt.classList.remove("visible");
