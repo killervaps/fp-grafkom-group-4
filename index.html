@@ -24,7 +24,7 @@
         border: 2px solid rgba(255, 255, 255, 0.8);
         border-radius: 50%;
         transform: translate(-50%, -50%);
-        pointer-events: none; /* Supaya klik tembus ke canvas */
+        pointer-events: none;
         z-index: 1001;
       }
       #crosshair::after {
@@ -339,6 +339,15 @@
         }
       }
 
+      /* Animation for Pause Screen Text */
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+      .animate-float {
+        animation: float 3s ease-in-out infinite;
+      }
+
       /* 3. Button hover effects */
       button:hover {
         transform: scale(1.05);
@@ -537,7 +546,6 @@
     </style>
   </head>
   <body>
-    <!-- Welcome/Tutorial Screen -->
     <div
       id="welcome-screen"
       class="fixed top-0 left-0 w-full h-full z-[2000] grid grid-cols-1 md:grid-cols-3 font-serif"
@@ -637,34 +645,89 @@
     <!-- Pause Screen -->
     <div
       id="pause-screen"
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        color: white;
-        font-size: 24px;
-        font-family: Arial;
-        cursor: pointer;
-        z-index: 1000;
-      "
+      class="fixed inset-0 bg-black/60 backdrop-blur-md hidden flex-col items-center justify-center z-[2500]"
     >
-      <div style="font-size: 36px; margin-bottom: 20px">Paused</div>
-      <div>Click to Resume</div>
-      <div style="font-size: 16px; margin-top: 20px; opacity: 0.7">
-        WASD to move | Mouse to look | ESC to pause
+      <div class="text-center w-full max-w-md p-8 animate-float">
+        <h2
+          class="text-amber-500 tracking-[0.3em] text-sm font-sans font-bold mb-2 uppercase"
+        >
+          Game Paused
+        </h2>
+        <h1
+          class="text-5xl font-bold text-white mb-10 drop-shadow-lg font-serif"
+        >
+          Istirahat Sejenak
+        </h1>
+
+        <div class="flex flex-col gap-4 font-sans">
+          <button
+            id="resume-btn"
+            class="group relative px-8 py-4 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition-all duration-300 shadow-lg flex items-center justify-center overflow-hidden"
+          >
+            <span class="relative z-10 tracking-wider flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              LANJUTKAN
+            </span>
+          </button>
+
+          <button
+            onclick="document.getElementById('controls-modal').classList.remove('hidden'); document.getElementById('controls-modal').classList.add('flex');"
+            class="px-8 py-3 bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              />
+            </svg>
+            LIHAT KONTROL
+          </button>
+
+          <button
+            id="back-to-menu-btn"
+            class="px-8 py-3 bg-transparent hover:bg-red-900/30 border border-transparent hover:border-red-800 text-slate-400 hover:text-red-400 font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 mt-4"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            MENU UTAMA
+          </button>
+        </div>
       </div>
     </div>
 
     <div id="crosshair"></div>
 
-    <!-- Interaction Prompt -->
     <div id="interaction-prompt">
       Press <span class="key">E</span> to view info
     </div>
@@ -832,7 +895,7 @@
 
               <div
                 class="group cursor-pointer"
-                onclick="selectMotif('./assets/kawung.jpg')"
+                onclick="selectMotif('./assets/megamendung.jpg')"
               >
                 <div
                   class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
@@ -842,7 +905,7 @@
                   "
                 >
                   <img
-                    src="./assets/kawung.jpg"
+                    src="./assets/megamendung.jpg"
                     alt="Kawung"
                     class="w-full h-32 md:h-40 object-cover"
                   />
@@ -851,6 +914,222 @@
                   class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
                 >
                   Kawung
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Truntum"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Truntum
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Sekar Jagad"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Sekar Jagad
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Sidoluhur"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Sidoluhur
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Nitik"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Nitik
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer page-2-item hidden"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Sogan"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Sogan
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer page-2-item hidden"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Lereng"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Lereng
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer page-2-item hidden"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Gurda"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Gurda
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer page-2-item hidden"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Pring Sedapur"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Pring Sedapur
+                </p>
+              </div>
+
+              <div
+                class="group cursor-pointer page-2-item hidden"
+                onclick="selectMotif('./assets/megamendung.jpg')"
+              >
+                <div
+                  class="bg-amber-950/50 rounded-lg overflow-hidden border-4 border-amber-700/70 transition-all duration-300 hover:scale-105 hover:border-yellow-600 hover:shadow-xl"
+                  style="
+                    box-shadow: 0 4px 12px rgba(120, 53, 15, 0.4),
+                      inset 0 2px 6px rgba(0, 0, 0, 0.3);
+                  "
+                >
+                  <img
+                    src="./assets/megamendung.jpg"
+                    alt="Tambal"
+                    class="w-full h-32 md:h-40 object-cover"
+                  />
+                </div>
+                <p
+                  class="text-center text-amber-200 font-medium mt-2 md:mt-3 text-xs md:text-sm"
+                >
+                  Tambal
                 </p>
               </div>
 
@@ -1097,6 +1376,51 @@
               <div id="page-indicators" class="flex gap-2">
                 <!-- Page indicators will be generated dynamically -->
               </div>
+              <button
+                onclick="nextPage()"
+                id="next-btn"
+                class="bg-amber-800/50 hover:bg-amber-700/70 text-amber-200 rounded-full p-2 md:p-3 transition-all duration-300 border-2 border-amber-600/60 hover:scale-110"
+                style="box-shadow: 0 2px 8px rgba(120, 53, 15, 0.4)"
+              >
+                <svg
+                  class="w-5 h-5 md:w-6 md:h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+
+            <div class="flex justify-center items-center gap-3 md:gap-4">
+              <button
+                onclick="previousPage()"
+                id="prev-btn"
+                class="bg-amber-800/50 hover:bg-amber-700/70 text-amber-200 rounded-full p-2 md:p-3 transition-all duration-300 border-2 border-amber-600/60 hover:scale-110"
+                style="box-shadow: 0 2px 8px rgba(120, 53, 15, 0.4)"
+              >
+                <svg
+                  class="w-5 h-5 md:w-6 md:h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  ></path>
+                </svg>
+              </button>
+              <div id="page-indicators" class="flex gap-2">
+                </div>
               <button
                 onclick="nextPage()"
                 id="next-btn"
