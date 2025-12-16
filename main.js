@@ -1260,10 +1260,10 @@ function init() {
       model.traverse((child) => {
         if (child.name === "Object_14") {
           const textureLoader = new THREE.TextureLoader();
-          const grassMap = textureLoader.load("./assets/texture_grass.jpg");
+          const grassMap = textureLoader.load("./assets/texture_grass.png");
           grassMap.wrapS = THREE.RepeatWrapping;
           grassMap.wrapT = THREE.RepeatWrapping;
-          grassMap.repeat.set(10, 10);
+          grassMap.repeat.set(3, 3);
           child.material.map = grassMap;
           child.material.color.setHex(0xffffff);
           child.material.metalness = 0.0;
@@ -1273,7 +1273,7 @@ function init() {
         }
         if (child.name === "area_terlarang") {
           const textureLoader = new THREE.TextureLoader();
-          const grassMap = textureLoader.load("./assets/texture_grass.jpg");
+          const grassMap = textureLoader.load("./assets/texture_grass.png");
           grassMap.wrapS = THREE.RepeatWrapping;
           grassMap.wrapT = THREE.RepeatWrapping;
           grassMap.repeat.set(100, 100);
