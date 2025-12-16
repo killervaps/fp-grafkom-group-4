@@ -1,6 +1,20 @@
 {
   "batik_patterns": [
     {
+      "name": "Custom Pattern",
+      "description": "Pola batik yang dibuat secara custom oleh pengguna.",
+      "philosophy": [
+        "-"
+      ]
+    },
+    {
+      "name": "AI Enhanced Pattern",
+      "description": "Pola batik yang dibuat secara custom oleh pengguna dan direalisasikan sebagai pola batik oleh AI.",
+      "philosophy": [
+        "-"
+      ]
+    },
+    {
       "name": "Tujuh Rupa",
       "description": "Batik Tujuh Rupa merupakan salah satu batik khas dari daerah Pekalongan Jawa Tengah. Dengan menggabungkan budaya local dan budaya Tiongkok yang masuk ke Pekalongan pada abad ke-19 batik tujuh rupa ini pun semakin menambah keanekaragaman motif batik yang ada di Indonesia.",
       "philosophy": [
@@ -49,7 +63,7 @@
       ]
     },
     {
-      "name": "Sidokmuti",
+      "name": "Sidomukti",
       "description": "Batik Sidomukti lahir di lingkungan keraton Jawa, khususnya dari Keraton Surakarta di Solo, Jawa Tengah. Batik Sido mukti merupakan pengembangan dari motif batik Sidomulyo yang pertama kali muncul pada masa Kesultanan Mataram.",
       "philosophy": [
         "Motif ini memiliki makna harapan agar seseorang mendapat kebahagiaan dan kesejahteraan dalam hidupnya.",
